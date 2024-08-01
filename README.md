@@ -20,9 +20,14 @@ The ESP32 is a powerful microcontroller with built-in WiFi and Bluetooth capabil
 1. Download the `ESPWebConnect` library.
 2. Copy the library to your Arduino `libraries` folder.
 3. Ensure you have the necessary dependencies installed:
-   - `ArduinoJson`
-   - `LittleFS`
-   - `DHT` (if using DHT sensors)
+   - `Wifi.h`
+   - `WebServer.h`
+   - `ArduinoJson.h`
+   - `LittleFS.h`
+   - `ESPmDNS.h`
+   - `Update.h`
+   - `vector.h`
+   - `functional.h`
 
 ## Usage
 
@@ -31,19 +36,14 @@ The ESP32 is a powerful microcontroller with built-in WiFi and Bluetooth capabil
 1. Include the necessary headers in your sketch:
    ```cpp
    #include "ESPWebConnect.h"
-   #include <DHT.h>
-   #include <DHT_U.h>
    ```
 
-2. Initialize the `ESPWebConnect` and sensor objects:
+2. Initialize the `ESPWebConnect`:
    ```cpp
    ESPWebConnect webConnect;
-   #define DHTPIN 32
-   #define DHTTYPE DHT11
-   DHT dht(DHTPIN, DHTTYPE);
    ```
 
-3. Define your variables for relays or other actuators:
+3. Define your variables for relays or sensors:
    ```cpp
    bool relay1 = true;
    bool relay2 = true;
@@ -52,7 +52,7 @@ The ESP32 is a powerful microcontroller with built-in WiFi and Bluetooth capabil
 
 ### Example Sketch
 
-Here is an example sketch demonstrating how to use the `ESPWebConnect` library:
+Here is an example sketch demonstrating how to use the `ESPWebConnect` library with DHT11:
 
 ```cpp
 #include "ESPWebConnect.h"
@@ -130,8 +130,4 @@ float updateCount() {
 
 ## License
 
-This project is licensed under the MIT License. See the LICENSE file for details.
-
-## Contributing
-
-Contributions are welcome! Please submit pull requests or open issues for any bugs or feature requests.
+This project is licensed REDACTED.
