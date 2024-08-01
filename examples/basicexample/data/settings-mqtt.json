@@ -1,0 +1,9 @@
+{
+    "MQTT_Broker": "mqtt.example.com",
+    "MQTT_Port": 1883,
+    "MQTT_Send": "esp32/send",
+    "MQTT_Recv": "esp32/receive",
+    "MQTT_User": "mqtt_user",
+    "MQTT_Pass": "mqtt_password"
+  }
+  

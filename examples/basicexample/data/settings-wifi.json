@@ -1,0 +1,8 @@
+{
+    "SSID_Name": "your-wifi",
+    "SSID_Pass": "your-password",
+    "ESP_MAC": "",
+    "SSID_AP_Name": "ESP-Test",
+    "SSID_AP_Pass": "password"
+  }
+  

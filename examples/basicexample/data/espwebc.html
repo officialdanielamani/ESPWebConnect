@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta name='viewport' content='width=device-width, initial-scale=1'>
+    <link rel="stylesheet" type="text/css" href="style.css">
+    <meta charset="UTF-8">
+    <title>ESP32 Configuration Interface</title>
+    <style>
+        .error {
+            color: red;
+        }
+    </style>
+    <script>
+        function fetchWifiSettings() {
+            fetch('/getWifiSettings')
+                .then(response => {
+                    if (!response.ok) throw new Error('Network response was not ok');
+                    return response.json();
+                })
+                .then(data => {
+                    document.getElementById('SSID_Name').value = data.SSID_Name;
+                    document.getElementById('SSID_Pass').value = data.SSID_Pass;
+                    document.getElementById('ESP_MAC').value = data.ESP_MAC;
+                    document.getElementById('SSID_AP_Name').value = data.SSID_AP_Name;
+                    document.getElementById('SSID_AP_Pass').value = data.SSID_AP_Pass;
+                })
+                .catch(error => {
+                    console.error('Error fetching WiFi settings:', error);
+                    alert('Failed to fetch WiFi settings.');
+                });
+        }
+
+        function fetchMQTTSettings() {
+            fetch('/getMQTTSettings')
+                .then(response => {
+                    if (!response.ok) throw new Error('Network response was not ok');
+                    return response.json();
+                })
+                .then(data => {
+                    document.getElementById('MQTT_Broker').value = data.MQTT_Broker;
+                    document.getElementById('MQTT_Port').value = data.MQTT_Port;
+                    document.getElementById('MQTT_Send').value = data.MQTT_Send;
+                    document.getElementById('MQTT_Recv').value = data.MQTT_Recv;
+                    document.getElementById('MQTT_User').value = data.MQTT_User;
+                    document.getElementById('MQTT_Pass').value = data.MQTT_Pass;
+                })
+                .catch(error => {
+                    console.error('Error fetching MQTT settings:', error);
+                    alert('Failed to fetch MQTT settings.');
+                });
+        }
+
+        function fetchWebSettings() {
+            fetch('/getWebSettings')
+                .then(response => {
+                    if (!response.ok) throw new Error('Network response was not ok');
+                    return response.json();
+                })
+                .then(data => {
+                    document.getElementById('Web_User').value = data.Web_User;
+                    document.getElementById('Web_Pass').value = data.Web_Pass;
+                    document.getElementById('Web_name').value = data.Web_name;
+                    document.getElementById('Web_Lock').checked = data.Web_Lock;
+                })
+                .catch(error => {
+                    console.error('Error fetching web settings:', error);
+                    alert('Failed to fetch web settings.');
+                });
+        }
+
+        function handleSubmit(event) {
+            event.preventDefault();
+            const formId = event.target.id;
+            const formData = new FormData(event.target);
+
+            // Convert FormData to JSON
+            const json = JSON.stringify(Object.fromEntries(formData.entries()));
+
+            let url = '';
+            if (formId === 'wifiForm') {
+                url = '/saveWifi';
+            } else if (formId === 'mqttForm') {
+                url = '/saveMQTT';
+            } else if (formId === 'webForm') {
+                formData.set('Web_Lock', document.getElementById('Web_Lock').checked ? "1" : "0");
+                url = '/saveWeb';
+            }
+
+            fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: json
+            }).then(response => {
+                if (!response.ok) throw new Error('Network response was not ok');
+                return response.text();
+            }).then(message => {
+                alert(message);
+                if (formId === 'wifiForm') {
+                    fetchWifiSettings();
+                } else if (formId === 'mqttForm') {
+                    fetchMQTTSettings();
+                } else if (formId === 'webForm') {
+                    fetchWebSettings();
+                }
+            }).catch(error => {
+                console.error('Error:', error);
+                alert('Failed to save settings.');
+            });
+        }
+
+        function handleFileSelect(evt) {
+            evt.stopPropagation();
+            evt.preventDefault();
+
+            var files = evt.target.files; // FileList object
+            var formData = new FormData();
+            formData.append('file', files[0]);
+
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', '/update-firmware', true);
+
+            xhr.onload = function() {
+                if (xhr.status === 200) {
+                    alert('Upload successful!');
+                } else {
+                    alert('Upload failed!');
+                }
+            };
+
+            xhr.send(formData);
+        }
+
+        function rebootESP() {
+            var xhr = new XMLHttpRequest();
+            xhr.open('GET', '/espwebc-reboot', true);
+            xhr.onload = function() {
+                if (xhr.status === 200) {
+                    alert('Rebooting...');
+                } else {
+                    alert('Reboot failed!');
+                }
+            };
+            xhr.send();
+        }
+
+        function init() {
+            fetchWifiSettings();
+            fetchMQTTSettings();
+            fetchWebSettings();
+            var fileInput = document.getElementById('file');
+            fileInput.addEventListener('change', handleFileSelect, false);
+        }
+
+        window.onload = init;
+    </script>
+</head>
+<body>
+<h1>ESP32 Configuration</h1>
+<p>This is where we can change all system configurations</p>
+<button onclick="window.location.href='/dashboard'">Back to Dashboard</button><br>
+<h2>WiFi Settings</h2>
+<form id="wifiForm" onsubmit="handleSubmit(event)">
+    <label for="SSID_Name">SSID/WiFi Name:</label>
+    <input type="text" id="SSID_Name" name="SSID_Name" required><br>
+    <label for="SSID_Pass">SSID/WiFi Password:</label>
+    <input type="password" id="SSID_Pass" name="SSID_Pass"><br>
+    <label for="ESP_MAC">ESP MAC Address:</label>
+    <input type="text" id="ESP_MAC" name="ESP_MAC" readonly><br>
+    <label for="SSID_AP_Name">AP SSID Name:</label>
+    <input type="text" id="SSID_AP_Name" name="SSID_AP_Name"><br>
+    <label for="SSID_AP_Pass">AP SSID Password:</label>
+    <input type="password" id="SSID_AP_Pass" name="SSID_AP_Pass"><br>
+    <button type="submit">Save WiFi Settings</button>
+</form>
+
+<h2>MQTT Settings</h2>
+<form id="mqttForm" onsubmit="handleSubmit(event)">
+    <label for="MQTT_Broker">MQTT Broker:</label>
+    <input type="text" id="MQTT_Broker" name="MQTT_Broker" required><br>
+    <label for="MQTT_Port">MQTT Port:</label>
+    <input type="number" id="MQTT_Port" name="MQTT_Port" required><br>
+    <label for="MQTT_Send">MQTT Send Topic:</label>
+    <input type="text" id="MQTT_Send" name="MQTT_Send" required><br>
+    <label for="MQTT_Recv">MQTT Receive Topic:</label>
+    <input type="text" id="MQTT_Recv" name="MQTT_Recv" required><br>
+    <label for="MQTT_User">MQTT User:</label>
+    <input type="text" id="MQTT_User" name="MQTT_User"><br>
+    <label for="MQTT_Pass">MQTT Password:</label>
+    <input type="password" id="MQTT_Pass" name="MQTT_Pass"><br>
+    <button type="submit">Save MQTT Settings</button>
+</form>
+
+<h2>Web Settings</h2>
+<form id="webForm" onsubmit="handleSubmit(event)">
+    <label for="Web_User">Web User:</label>
+    <input type="text" id="Web_User" name="Web_User" required><br>
+    <label for="Web_Pass">Web Password:</label>
+    <input type="password" id="Web_Pass" name="Web_Pass" required><br>
+    <label for="Web_name">Web Name:</label>
+    <input type="text" id="Web_name" name="Web_name"><br>
+    <label for="Web_Lock">Web Lock:</label>
+    <input type="checkbox" id="Web_Lock" name="Web_Lock"><br>
+    <button type="submit">Save Web Settings</button>
+</form>
+
+<h2>OTA Update</h2>
+<form>
+    <input type="file" id="file" name="file">
+</form>
+
+<h2>Reboot</h2>
+<button style="background-color:orange; width: 25%;" onclick="rebootESP()">Reboot ESP</button><br><br>
+<footer>
+    <button onclick="window.location.href='dashboard'">Back to Dashboard</button>
+    <a href="danielamani.com" style="color: white;">Code by: DanielAmani.com</a><br></footer>
+</body>
+</html>

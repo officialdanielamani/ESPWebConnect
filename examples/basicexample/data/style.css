@@ -1,0 +1,162 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #1a1a1a;
+    color: #e0e0e0;
+    margin: 0;
+    padding: 0;
+    text-align: center;
+}
+
+h3, p {
+    color: #fff;
+}
+
+form {
+    width: 70%;
+    margin: 20px auto 0;
+    text-align: left;
+}
+
+input, select, button {
+    display: block;
+    width: 100%;
+    margin: 10px 0;
+    padding: 15px;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+input, select {
+    border: 1px solid #555;
+    background-color: #333;
+    color: #ddd;
+    font-size: 1.2em;
+}
+
+button {
+    display: block;
+    width: 80%;
+    margin: 10px auto;
+    border: none;
+    background-color: #008CBA;
+    color: white;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+button:hover {
+    background-color: #007B9A;
+}
+
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 60px;
+    height: 34px;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider_sw {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    -webkit-transition: .4s;
+    transition: .4s;
+}
+
+.slider_sw:before {
+    position: absolute;
+    content: "";
+    height: 26px;
+    width: 26px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    -webkit-transition: .4s;
+    transition: .4s;
+}
+
+input:checked + .slider_sw:before {
+    background-color: #2196F3;
+    -webkit-transform: translateX(26px);
+    -ms-transform: translateX(26px);
+    transform: translateX(26px);
+}
+
+input:focus + .slider_sw {
+    box-shadow: 0 0 1px #2196F3;
+}
+
+.table-wrapper {
+    display: inline-block;
+    text-align: left;
+}
+
+.table {
+    display: inline-table;
+    text-align: left;
+    border-collapse: collapse;
+    width: 100%;
+}
+
+.table th, .table td {
+    padding: 8px;
+    border-bottom: 1px solid #ddd;
+}
+
+.table th {
+    background-color: #f2f2f2;
+}
+
+.lamp {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: white;
+    transition: background-color 0.5s;
+    display: inline-block;
+    margin-right: 20px;
+}
+
+.lamp.yellow {
+    background-color: yellow;
+}
+
+.dashboard {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center; /* Center the cards horizontally */
+}
+
+.card {
+    background-color: #333;
+    border-radius: 4px;
+    box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
+    margin: 20px;
+    padding: 20px;
+    text-align: center;
+    width: 200px;
+    height: 150px; /* Fixed height for all cards */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.card .icon {
+    font-size: 32px; /* Increased font size for the icon */
+    margin-bottom: 10px;
+}
+
+.container {
+    padding: 10px;
+}
