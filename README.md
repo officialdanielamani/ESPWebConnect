@@ -216,12 +216,16 @@ Example use to save
 ```
 Example to get value
 ```cpp
-Serial.println(webConnect.wifiSettings.ESP_MAC);```
+Serial.println(webConnect.wifiSettings.ESP_MAC);
+```
 
 Please note the **Wi-Fi need on 2.4Ghz** as ESP32 Hardware not support 5Ghz Wi-Fi. Some pin fucntionality also disable when using Wi-Fi functionality. For more detail visit here:
-[https://randomnerdtutorials.com/esp32-pinout-reference-gpios/](https://randomnerdtutorials.com/esp32-pinout-reference-gpios/ "https://randomnerdtutorials.com/esp32-pinout-reference-gpios/")
 
-Default ip when in AP mode is `http://192.168.4.1`
+[ESP32 Pinout Reference: Which GPIO pins should you use?](https://randomnerdtutorials.com/esp32-pinout-reference-gpios "ESP32 Pinout Reference: Which GPIO pins should you use?")
+
+Default ip when in AP mode is 
+
+    http://192.168.4.1
 
 ------------
 
