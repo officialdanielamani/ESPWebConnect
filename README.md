@@ -196,6 +196,8 @@ Example:
 
 [![Example ESP32 Configuration page](https://raw.githubusercontent.com/officialdanielamani/ESPWebConnect/main/image/Webc.png "Example ESP32 Configuration page")](hthttps://raw.githubusercontent.com/officialdanielamani/ESPWebConnect/main/image/Webc.pngtp:// "Example ESP32 Configuration page")
 
+By default WebConfigurations is on `http://your-esp-ip/espwebc`
+
 ------------
 
 ### Wi-Fi Functions
