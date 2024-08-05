@@ -1,4 +1,3 @@
-
 # ESPWebConnect
 
 ESPWebConnect is a library designed for the ESP32 microcontroller that facilitates easy web-based configuration and control of connected devices. It supports WiFi and MQTT settings, OTA updates, and provides a user-friendly web interface for monitoring sensors and controlling actuators.
