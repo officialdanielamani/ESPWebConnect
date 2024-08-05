@@ -84,12 +84,12 @@ yourproject.ino
 ```
 You need to follow the JSON and file structure for the library can running properly.
 
-### Dashboard Elements
+## Dashboard Elements
 [![Dashboard Image](https://raw.githubusercontent.com/officialdanielamani/ESPWebConnect/main/image/Dashboard.png "Dashboard Image")](https://raw.githubusercontent.com/officialdanielamani/ESPWebConnect/main/image/Dashboard.png "Dashboard Image")
 
 By default Dashboard is on `http://your-esp-ip/dashboard`
 
-#### Dashboard Configuration
+### Dashboard Configuration
 
 Optional: Set Dashboard Path
 `webConnect.setDashPath("/dashboard");`
@@ -111,7 +111,7 @@ Optional: Set Website fetch data interval
 `webConnect.setAutoUpdate(2500);`
 Default value is 1000 millis if not set.
 
-#### Adding Sensors
+### Adding Sensors
 
 This function will take reading and show it on the dashboard. It takes 5 arguments:
 `webConnect.addSensor("ID", "Text-to-display", "Unit", "Icon", function-return-float);`
@@ -136,7 +136,7 @@ float readTemperature() {
 }
 ```
 
-#### Adding Switches
+### Adding Switches
 
 You can add switches to control digital outputs (e.g., relays). The `addSwitch` method takes 4 arguments:
 `webConnect.addSwitch("ID", "Text-to-display", "Icon", &variable);`
@@ -148,7 +148,7 @@ Example:
 3. `fa fa-lightbulb` is the lightbulb icon in Fontawesome.
 4. `&relay1` is the reference to the relay1 variable.
 
-#### Adding Buttons
+### Adding Buttons
 - Note this function still on testing
 
 Buttons can be added to trigger actions. The `addButton` method takes 4 arguments:
@@ -167,7 +167,7 @@ void onButtonPress() {
 }
 ```
 
-#### Colour the icon
+### Colour the icon
 
 To set the color of the icon, use the `setIconColor` method:
 `webConnect.setIconColor("ID", "color");`
