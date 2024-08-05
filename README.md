@@ -229,7 +229,6 @@ Default ip when in AP mode is `http://192.168.4.1`
 ### MQTT Functions
 
 To enable and use MQTT functions:
-
 ```cpp
 void loop() {
 // All your initializations
@@ -257,14 +256,17 @@ To change the MQTT detail you can use web-interface, change it on `settings-mqtt
 6. `MQTT_Pass` Password of MQTT
 
 Example use to save
+
 ```cpp
     webConnect.mqttSettings.MQTT_Broker = "mqtt.example.com";
     webConnect.saveMQTTSettings(webConnect.mqttSettings);
     Serial.println(webConnect.mqttSettings.MQTT_Broker);
 ```
 Example to get value
+
 ```cpp
-Serial.println(webConnect.mqttSettings.MQTT_Broker);```
+Serial.println(webConnect.mqttSettings.MQTT_Broker);
+```
 
 *(Note MQTT function will automatically block when AP mode)*
 
