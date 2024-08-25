@@ -34,18 +34,24 @@ This library is in **BETA** development and for internal usage of ProjectEDNA. D
 2. On Arduino IDE, click Sketch, Include Library, Add .ZIP library.
 3. Ensure you have the necessary dependencies or library installed:
    - `Wifi.h`
-   - `WebServer.h`
+   - `WiFiUdp.h`
+   - `ESPAsyncWebServer.h`
    - `WebSocketsServer.h`
    - `ArduinoJson.h`
    - `LittleFS.h`
    - `ESPmDNS.h`
-   - `PubSubClient.h`
    - `Update.h`
+   - `PubSubClient.h`
 
 ------------
 
 
 ## Usage
+
+### Core System Selection
+To reduce the library code during compilation you can enable MQTT functionality by adding or enable `#define ENABLE_MQTT` on ESPWebConnect.cpp on like this example path of Arduino library `C:\Users\YOUR-PC\Documents\Arduino\libraries\ESPWebConnect`
+
+If you try to call any MQTT functionality without enable this flag will cause the compiler errors.
 
 ### Initialization
 
@@ -314,33 +320,29 @@ void setup() {
     webConnect.begin();
     webConnect.setIconUrl("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css");
     webConnect.setCSS("style.css");
-    webConnect.setAutoUpdate(2500); //change interval to 2500 ms
+    webConnect.setAutoUpdate(2500);
     webConnect.addSwitch("relay-1", "Relay-1", "fa-regular fa-lightbulb", &relay1);
     webConnect.setIconColor("relay-1", "#D3D876");
     webConnect.addSwitch("relay-2", "Relay-2", "fa-solid fa-fan", &relay2); 
     webConnect.addSensor("counter", "Counter", "", "fa fa-infinity", updateCount);
-    webConnect.enableMQTT();
+    webConnect.addButton("btn1", "Press Me", "fa fa-hand-pointer", true, onButtonPress);
 }
 
 void loop() {
-    webConnect.handleClient();
-    webConnect.checkMQTT();
     digitalWrite(16, relay1 ? HIGH : LOW);
     digitalWrite(17, relay2 ? HIGH : LOW);
+}
 
-    if (webConnect.hasNewMQTTMsg()) {
-        String message = webConnect.getMQTTMsg();
-        Serial.print("New message: ");
-        Serial.println(message);
-        webConnect.sendNotification("mqtt", message , "white", "fa-regular fa-envelope", "white", 10);
-    }
+void onButtonPress() {
+  Serial.println("Button is press");
+  webConnect.sendNotification("noti-count", "Button is pressed" , "white", "fa-regular fa-envelope", "white", 10);
 }
 
 float updateCount() {
     count++;
-   if (count > 50) {
+    if (count > 50) {
         count = 0;
-        webConnect.sendNotification("mqtt", "~ Reset Counter" , "white", "fa-regular fa-envelope", "white", 10);
+        webConnect.sendNotification("noti-count", "~ Reset Counter" , "white", "fa-regular fa-envelope", "white", 10);
     }
     return count;
 }

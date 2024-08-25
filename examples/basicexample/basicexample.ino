@@ -23,28 +23,24 @@ void setup() {
     webConnect.setIconColor("relay-1", "#D3D876");
     webConnect.addSwitch("relay-2", "Relay-2", "fa-solid fa-fan", &relay2); 
     webConnect.addSensor("counter", "Counter", "", "fa fa-infinity", updateCount);
-    webConnect.enableMQTT();
+    webConnect.addButton("btn1", "Press Me", "fa fa-hand-pointer", true, onButtonPress);
 }
 
 void loop() {
-    webConnect.handleClient();
-    webConnect.checkMQTT();
     digitalWrite(16, relay1 ? HIGH : LOW);
     digitalWrite(17, relay2 ? HIGH : LOW);
+}
 
-    if (webConnect.hasNewMQTTMsg()) {
-        String message = webConnect.getMQTTMsg();
-        Serial.print("New message: ");
-        Serial.println(message);
-        webConnect.sendNotification("mqtt", message , "white", "fa-regular fa-envelope", "white", 10);
-    }
+void onButtonPress() {
+  Serial.println("Button is press");
+  webConnect.sendNotification("noti-count", "Button is pressed" , "white", "fa-regular fa-envelope", "white", 10);
 }
 
 float updateCount() {
     count++;
-   if (count > 50) {
+    if (count > 50) {
         count = 0;
-        webConnect.sendNotification("mqtt", "~ Reset Counter" , "white", "fa-regular fa-envelope", "white", 10);
+        webConnect.sendNotification("noti-count", "~ Reset Counter" , "white", "fa-regular fa-envelope", "white", 10);
     }
     return count;
 }
