@@ -1,20 +1,23 @@
 body {
     font-family: Arial, sans-serif;
-    background-color: #1a1a2e; /* Darker purple background */
-    color: #dcd6f7; /* Light purple text */
+    background-color: #1a1a2e;
+    color: #dcd6f7;
     margin: 0;
     padding: 0;
     text-align: center;
+    font-size: 16px;
 }
 
 h3, p {
-    color: #dcd6f7; /* Light purple text */
+    color: #dcd6f7; 
+    font-size: 1.25em;
 }
 
 form {
     width: 70%;
     margin: 20px auto 0;
     text-align: left;
+    font-size: 1em;
 }
 
 input, select, button {
@@ -24,13 +27,13 @@ input, select, button {
     padding: 15px;
     border-radius: 4px;
     box-sizing: border-box;
+    font-size: 1em;
 }
 
 input, select {
-    border: 1px solid #4e4e8a; /* Medium purple border */
-    background-color: #2e2e4d; /* Darker purple background */
-    color: #dcd6f7; /* Light purple text */
-    font-size: 1.2em;
+    border: 1px solid #4e4e8a;
+    background-color: #2e2e4d;
+    color: #dcd6f7;
 }
 
 button {
@@ -38,14 +41,14 @@ button {
     width: 80%;
     margin: 10px auto;
     border: none;
-    background-color: #826cd7; /* Bright purple button */
+    background-color: #826cd7;
     color: white;
     cursor: pointer;
-    font-size: 16px;
+    font-size: 1em;
 }
 
 button:hover {
-    background-color: #674ab3; /* Darker purple on hover */
+    background-color: #674ab3; 
 }
 
 .switch {
@@ -68,7 +71,7 @@ button:hover {
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: #4e4e8a; /* Medium purple background */
+    background-color: #4e4e8a;
     -webkit-transition: .4s;
     transition: .4s;
 }
@@ -86,14 +89,14 @@ button:hover {
 }
 
 input:checked + .slider_sw:before {
-    background-color: #826cd7; /* Bright purple on active */
+    background-color: #826cd7;
     -webkit-transform: translateX(26px);
     -ms-transform: translateX(26px);
     transform: translateX(26px);
 }
 
 input:focus + .slider_sw {
-    box-shadow: 0 0 1px #826cd7; /* Bright purple focus */
+    box-shadow: 0 0 1px #826cd7; 
 }
 
 .table-wrapper {
@@ -106,6 +109,7 @@ input:focus + .slider_sw {
     text-align: left;
     border-collapse: collapse;
     width: 100%;
+    font-size: 1em;
 }
 
 .table th, .table td {
@@ -114,7 +118,8 @@ input:focus + .slider_sw {
 }
 
 .table th {
-    background-color: #4e4e8a; /* Medium purple background */
+    background-color: #4e4e8a; 
+    font-size: 1em;
 }
 
 .dashboard {
@@ -123,13 +128,12 @@ input:focus + .slider_sw {
     justify-content: center;
 }
 
-/* InputNum Card Specific Styling */
 .card {
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    background-color: #2e2e4d; /* Darker purple background */
+    background-color: #2e2e4d;
     border-radius: 4px;
     box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
     margin: 20px;
@@ -137,18 +141,19 @@ input:focus + .slider_sw {
     text-align: center;
     width: 200px;
     height: 200px;
+    font-size: 1em;
 }
 
 .card .icon {
-    font-size: 64px;
-    margin-bottom: 10px; /* Adds spacing between the icon and text */
-    color: #826cd7; /* Bright purple icon */
+    font-size: 4em;
+    margin-bottom: 10px;
+    color: #826cd7;
 }
 
 .card .input-label {
-    font-size: 18px;
-    margin-bottom: 10px; /* Adds spacing between the label and input/button */
-    color: #dcd6f7; /* Light purple text */
+    font-size: 1.125em;
+    margin-bottom: 10px;
+    color: #dcd6f7;
 }
 
 .card form {
@@ -164,25 +169,25 @@ input:focus + .slider_sw {
     margin-right: 10px;
     padding: 10px;
     border-radius: 4px;
-    border: 1px solid #4e4e8a; /* Medium purple border */
-    background-color: #2e2e4d; /* Darker purple background */
-    color: #dcd6f7; /* Light purple text */
-    font-size: 1.2em;
+    border: 1px solid #4e4e8a;
+    background-color: #2e2e4d;
+    color: #dcd6f7;
+    font-size: 1em; 
     text-align: center;
 }
 
 .card button[type="submit"] {
-    padding: 10px 20px; /* Adjust padding for better alignment */
+    padding: 10px 20px;
     border-radius: 4px;
-    background-color: #826cd7; /* Bright purple button */
+    background-color: #826cd7;
     color: white;
-    font-size: 1.2em;
+    font-size: 1em;
     cursor: pointer;
-    width: auto; /* Set the width to auto to fit content */
+    width: auto; 
 }
 
 .card button[type="submit"]:hover {
-    background-color: #674ab3; /* Darker purple on hover */
+    background-color: #674ab3;
 }
 
 .container {
@@ -194,8 +199,8 @@ input:focus + .slider_sw {
     position: fixed;
     top: 0;
     width: 100%;
-    background-color: #2e2e4d; /* Darker purple background */
-    color: #dcd6f7; /* Light purple text */
+    background-color: #2e2e4d;
+    color: #dcd6f7;
     padding: 20px;
     z-index: 1000;
     display: flex;
@@ -203,16 +208,17 @@ input:focus + .slider_sw {
     justify-content: center;
     border-radius: 4px;
     box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
+    font-size: 1em;
 }
 
 .notification-icon {
     margin-right: 15px;
-    color: #826cd7; /* Bright purple icon */
+    color: #826cd7; 
 }
 
 .notification-message {
     flex-grow: 1;
-    font-size: 22px;
+    font-size: 1.375em;
     max-width: 90%;
     display: flex;
     align-items: center;
@@ -224,7 +230,7 @@ input:focus + .slider_sw {
     width: 50px;
     border: none;
     color: white;
-    font-size: 20px;
+    font-size: 1.25em; 
     cursor: pointer;
     padding: 10px;
     border-radius: 4px;
