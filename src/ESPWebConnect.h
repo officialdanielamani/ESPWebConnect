@@ -1,16 +1,19 @@
 #ifndef ESPWEBCONNECT_H
 #define ESPWEBCONNECT_H
 //#define ENABLE_MQTT
+#include <Arduino.h>
 #include <WiFi.h>
 #include <WiFiUdp.h>
+#include <WiFiClientSecure.h>
 #include <ESPAsyncWebServer.h>
 #include <ArduinoJson.h>
 #include <LittleFS.h>
 #include <ESPmDNS.h>
-#include <ArduinoOTA.h>
+#include <Update.h>
 #include <vector>
 #include <functional>
 #include <map>
+#include "esp_task_wdt.h"
 
 #ifdef ENABLE_MQTT
 #include <PubSubClient.h>
@@ -37,6 +40,10 @@ public:
     void addSensor(const String& id, const String& name, const String& unit, const String& icon, std::function<float()> readFunction);
     void addSwitch(const String& id, const String& name, const String& icon, bool* state);
     void addButton(const String& id, const String& name, const String& icon, bool update, std::function<void()> onPress);
+    void addInputNum(const String& id, const String& name, const String& icon, int* variable);
+    void addInputNum(const String& id, const String& name, const String& icon, float* variable);
+
+
     void setIconColor(const String& id, const String& color);
     void setDashPath(const String& path);
     void setTitle(const String& title);
@@ -45,7 +52,7 @@ public:
     void updateDashboard();
     void sendNotification(const String& id, const String& message, const String& messageColor, const String& icon, const String& iconColor, int timeout);
     void handleButtonPress(AsyncWebServerRequest *request);
-    
+
     #ifdef ENABLE_MQTT
     struct MQTTSettings {
         String MQTT_Broker;        
@@ -69,6 +76,9 @@ public:
     void saveWifiSettings(const WifiSettings& settings);
     double convDec(double value, int decimal_point = 2);
 
+    // Add the new OTA method here
+    void performOTAUpdateFromURL(const String& firmwareURL);
+
 private:
     WiFiClient wifiClient;
     AsyncWebServer server;
@@ -83,27 +93,39 @@ private:
     WebSettings webSettings;
     bool isAPMode() const;
 
-    struct DashboardElement {
-        enum Type { SENSOR, SWITCH, BUTTON } type;
-        String id;
-        String name;
-        String unit;
-        String icon;
-        std::function<float()> readFunction;
-        bool* state;
-        std::function<void()> onPress;
-        String color;
+struct DashboardElement {
+    enum Type { SENSOR, SWITCH, BUTTON, INPUT_NUM } type;
+    String id;
+    String name;
+    String unit;
+    String icon;
+    std::function<float()> readFunction;
+    bool* state;
+    std::function<void()> onPress;
+    String color;
+    int* intValue;
+    float* floatValue;
 
-        DashboardElement(const String& id, const String& name, const String& unit, const String& icon, std::function<float()> readFunction, const String& color)
-            : type(SENSOR), id(id), name(name), unit(unit), icon(icon), readFunction(readFunction), state(nullptr), onPress(nullptr), color(color) {}
+    // Constructor for sensors
+    DashboardElement(const String& id, const String& name, const String& unit, const String& icon, std::function<float()> readFunction)
+        : type(SENSOR), id(id), name(name), unit(unit), icon(icon), readFunction(readFunction), state(nullptr), onPress(nullptr), intValue(nullptr), floatValue(nullptr) {}
 
-        DashboardElement(const String& id, const String& name, const String& icon, bool* state, const String& color)
-            : type(SWITCH), id(id), name(name), unit(""), icon(icon), readFunction(nullptr), state(state), onPress(nullptr), color(color) {}
+    // Constructor for switches
+    DashboardElement(const String& id, const String& name, const String& icon, bool* state)
+        : type(SWITCH), id(id), name(name), unit(""), icon(icon), readFunction(nullptr), state(state), onPress(nullptr), intValue(nullptr), floatValue(nullptr) {}
 
-        DashboardElement(const String& id, const String& name, const String& icon, const String& color, std::function<void()> onPress)
-            : type(BUTTON), id(id), name(name), unit(""), icon(icon), readFunction(nullptr), state(nullptr), onPress(onPress), color(color) {}
-    };
+    // Constructor for buttons
+    DashboardElement(const String& id, const String& name, const String& icon, std::function<void()> onPress)
+        : type(BUTTON), id(id), name(name), unit(""), icon(icon), readFunction(nullptr), state(nullptr), onPress(onPress), intValue(nullptr), floatValue(nullptr) {}
 
+    // Constructor for integer input
+    DashboardElement(const String& id, const String& name, const String& icon, int* intValue)
+        : type(INPUT_NUM), id(id), name(name), unit(""), icon(icon), readFunction(nullptr), state(nullptr), onPress(nullptr), intValue(intValue), floatValue(nullptr) {}
+
+    // Constructor for float input
+    DashboardElement(const String& id, const String& name, const String& icon, float* floatValue)
+        : type(INPUT_NUM), id(id), name(name), unit(""), icon(icon), readFunction(nullptr), state(nullptr), onPress(nullptr), intValue(nullptr), floatValue(floatValue) {}
+};
     std::vector<DashboardElement> dashboardElements;
 
     String iconUrl;
@@ -116,18 +138,16 @@ private:
     // Updated to take AsyncWebServerRequest* parameter
     void handleToggleSwitch(AsyncWebServerRequest *request);
     void handleNotification(AsyncWebServerRequest *request);
-    void handleSaveWifi(AsyncWebServerRequest *request);
-    void handleSaveWeb(AsyncWebServerRequest *request);
     void handleGetWifiSettings(AsyncWebServerRequest *request);
     void handleGetWebSettings(AsyncWebServerRequest *request);
+    void handleFirmwareUpload(AsyncWebServerRequest *request);
     
     void onWebSocketEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type, void *arg, uint8_t *data, size_t len);
 
     bool checkAuth(AsyncWebServerRequest *request);
     bool readWifiSettings(WifiSettings& settings);
     bool readWebSettings(WebSettings& settings);
-    
-    void configureOTA();
+    void sendOTAUpdateProgress(float progress);
 
     // Private methods
     String generateDashboardHTML();   // Generates the HTML for the dashboard
@@ -140,7 +160,6 @@ private:
     bool configureWiFi(const char* ssid, const char* password); // Configures WiFi settings
 
     #ifdef ENABLE_MQTT
-    void handleSaveMQTT(AsyncWebServerRequest *request);
     void handleGetMQTTSettings(AsyncWebServerRequest *request);
     bool readMQTTSettings(MQTTSettings& settings);
     void mqttCallback(char* topic, byte* payload, unsigned int length);
