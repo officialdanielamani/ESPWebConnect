@@ -164,7 +164,8 @@ input:focus + .slider_sw {
     width: 100%;
 }
 
-.card input[type="number"] {
+.card input[type="number"],
+.card input[type="text"] {
     flex: 1;
     margin-right: 10px;
     padding: 10px;
@@ -189,6 +190,7 @@ input:focus + .slider_sw {
 .card button[type="submit"]:hover {
     background-color: #674ab3;
 }
+
 
 .container {
     padding: 10px;
