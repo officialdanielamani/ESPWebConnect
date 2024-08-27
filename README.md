@@ -5,7 +5,7 @@
 
 `ESPWebConnect` is a comprehensive library designed for the ESP32 platform. It provides easy integration for WiFi, MQTT, WebSocket, and web-based dashboards to monitor and control your IoT devices. This library enables seamless connectivity and interaction with sensors, switches, and buttons through a web interface. More control, more customization, no longer need depending on 3rd party cloud provider.
 
-You can try use our installer at to test some example projects: https://danielamani.com/project/core_firmware/index.html
+You can try use our installer at to test some example projects: ~~https://danielamani.com/project/core_firmware/index.html~~
 (Note only on Chrome Desktop, ensure disable Serial Monitor and Serial Plotter first)
 
 ------------
@@ -22,7 +22,7 @@ This library is in **BETA** development and for internal usage of ProjectEDNA. D
 - Customizable dashboard with icons and colors.
 - Publishes and subscribes to MQTT topics.
 - Supports LittleFS for file storage.
-- Integrates WebSockets for real-time updates.
+- Integrates ESPAsyncwebserver and WebSockets for real-time updates.
 - Allows the addition of sensors, switches, and buttons to a customizable dashboard.
 
 ------------
@@ -37,6 +37,7 @@ This library is in **BETA** development and for internal usage of ProjectEDNA. D
    - `WiFiUdp.h`
    - `ESPAsyncWebServer.h`
    - `WebSocketsServer.h`
+   - `WiFiClientSecure.h`
    - `ArduinoJson.h`
    - `LittleFS.h`
    - `ESPmDNS.h`
@@ -117,78 +118,111 @@ Optional: Set Website fetch data interval
 `webConnect.setAutoUpdate(2500);`
 Default value is 1000 millis if not set.
 
+Optional: Set Dashbaord Card size
+`webConnect.setAllCardSize(180, 180); `
+Default value is 200 if not set (Unit: pixel).
+
 ### Adding Sensors
 
 This function will take reading and show it on the dashboard. It takes 5 arguments:
-`webConnect.addSensor("ID", "Text-to-display", "Unit", "Icon", function-return-float);`
+```cpp
+webConnect.addSensor("ID", "Text-to-display", "Unit", "Icon", variable);`
+```
+
+*Variable can be in float, int or String*
 
 Example:
-`webConnect.addSensor("tempDHT11", "Temperature", "°C", "fa fa-thermometer-half", readTemperature);`
+```cpp
+webConnect.addSensor("tempDHT11", "Temperature", "°C", "fa fa-thermometer-half", readTemperature);
+```
+
 1. `tempDHT11` is the ID (This is needed for icon color)
 2. `Temperature` will show up as text in the sensor title.
 3. `°C` displays the unit of temperature
 4. `fa fa-thermometer-half` thermometer icon in Fontawesome
-5. `readTemperature()` function that returns a float value
+5. `&temperature` the variable need updated (*Example float temperature*)
 
-```cpp
-float readTemperature() {
-    float temperature = dht.readTemperature();
-    if (isnan(temperature)) {
-        Serial.println("Failed to read from DHT sensor!");
-        return NAN;
-    }
-    tempDHT = temperature;
-    return temperature;
-}
-```
+The value will be update after set data interval.
 
 ### Adding Switches
 
 You can add switches to control digital outputs (e.g., relays). The `addSwitch` method takes 4 arguments:
-`webConnect.addSwitch("ID", "Text-to-display", "Icon", &variable);`
+```cpp
+webConnect.addSwitch("ID", "Text-to-display", "Icon", &variable);
+```
 
 Example:
-`webConnect.addSwitch("relay1", "Relay 1", "fa fa-lightbulb", &relay1);`
+```cpp
+webConnect.addSwitch("relay1", "Relay 1", "fa fa-lightbulb", &relay1);
+```
+
 1. `relay1` is the ID.
 2. `Relay 1` will show up as text in the switch title.
 3. `fa fa-lightbulb` is the lightbulb icon in Fontawesome.
 4. `&relay1` is the reference to the relay1 variable.
 
 ### Adding Buttons
-- Note this function still on testing
-
 Buttons can be added to trigger actions. The `addButton` method takes 4 arguments:
-`webConnect.addButton("ID", "Text-to-display", "Icon", callbackFunction);`
+```cpp
+webConnect.addButton("ID", "Text-on-button", "Icon", callbackFunction);
+```
 
 Example:
-`webConnect.addButton("btn1", "Press Me", "fa fa-hand-pointer", onButtonPress);`
-1. `btn1` is the ID.
-2. `Press Me` will show up as text on the button.
-3. `fa fa-hand-pointer` is the hand pointer icon in Fontawesome.
-4. `onButtonPress` is the function to be called when the button is pressed.
-
 ```cpp
+webConnect.addButton("btn1", "Press Me", "fa fa-hand-pointer", onButtonPress);
+//Other code
 void onButtonPress() {
     Serial.println("Button Pressed!");
 }
 ```
 
+1. `btn1` is the ID.
+2. `Press Me` will show up as text on the button.
+3. `fa fa-hand-pointer` is the hand pointer icon in Fontawesome.
+4. `onButtonPress` is the function to be called when the button is pressed.
+
+
 ### Colour the icon
 
 To set the color of the icon, use the `setIconColor` method:
-`webConnect.setIconColor("ID", "color");`
+```cpp
+webConnect.setIconColor("ID", "color");
+```
 
 Example:
-`webConnect.setIconColor("relay1", "#FF0000");// Set Relay 1 icon to red`
+```cpp
+webConnect.setIconColor("relay1", "#FF0000");// Set Relay 1 icon to red
+```
+
 For colour can use HEX value or colour name as `red`
+
+### Set Individual Card size
+
+The icon size is using multiplier from default/setAllCardSize value.
+```cpp
+webConnect.setCardSize("ID",float-X,float-Y);
+```
+Example:
+```cpp
+webConnect.setCardSize("inputTimer",0.8,2);
+```
+
+1. `inputTimer` is the ID of card that need to change
+2. `0.8` will be times with value X (width card).
+3. `2` will be times with value Y (height card).
 
 ### Sending Notifications
 
 Send notifications to the dashboard:
-`webConnect.sendNotification("ID", "Message", "bg-color", "icon", "icon-color", duration);`
+```cpp
+webConnect.sendNotification("ID", "Message", "bg-color", "icon", "icon-color", duration);
+```
 
 Example:
-`webConnect.sendNotification("notify1", "Hello World", "blue", "fa fa-info", "white", 5);`
+```cpp
+webConnect.sendNotification("notify1", "Hello World", "blue", "fa fa-info", "white", 5);
+```
+
 1. `notify1` is the ID.
 2. `Hello World` is the message to display.
 3. `blue` is the background color.
@@ -239,6 +273,7 @@ Default ip when in AP mode is
 
 
 ### MQTT Functions
+*Note: This function is Disable by default. This function on testing, if not suitable we will remove management on Sending and Recieving*
 
 To enable and use MQTT functions:
 ```cpp
@@ -307,6 +342,9 @@ ESPWebConnect webConnect;
 bool relay1 = true; //16
 bool relay2 = true; //17
 float count = 0;
+int numbers = 0;
+String text;
+unsigned long preTime = 0;
 
 void setup() {
     Serial.begin(115200);
@@ -320,17 +358,27 @@ void setup() {
     webConnect.begin();
     webConnect.setIconUrl("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css");
     webConnect.setCSS("style.css");
+	webConnect.setAllCardSize(180, 180);
+	webConnect.setDesc("My Smart Home Panel");
     webConnect.setAutoUpdate(2500);
     webConnect.addSwitch("relay-1", "Relay-1", "fa-regular fa-lightbulb", &relay1);
     webConnect.setIconColor("relay-1", "#D3D876");
     webConnect.addSwitch("relay-2", "Relay-2", "fa-solid fa-fan", &relay2); 
-    webConnect.addSensor("counter", "Counter", "", "fa fa-infinity", updateCount);
-    webConnect.addButton("btn1", "Press Me", "fa fa-hand-pointer", true, onButtonPress);
+    webConnect.addSensor("counter", "Counter", "", "fa fa-infinity", &count);
+    webConnect.addButton("btn1", "Press Me", "fa fa-hand-pointer", onButtonPress);
+    webConnect.addInputText("input-text", "Enter text:", "fa-solid fa-pencil", &text);
+    webConnect.addSensor("text-val", "Input text value", "", "fa-solid fa-print", &text);
 }
 
 void loop() {
     digitalWrite(16, relay1 ? HIGH : LOW);
     digitalWrite(17, relay2 ? HIGH : LOW);
+	
+	unsigned int taskDelay = 5000;
+    	if((millis()-preTime)>taskDelay){
+	       updateCount();
+      preTime=millis();
+    }
 }
 
 void onButtonPress() {
@@ -352,11 +400,28 @@ float updateCount() {
 
 
 ## To-Do
-- API Support
-- New Protocol such as Matter, Lo-Ra and ESP-Now
-- Spilit the codebase to smaller chunk so can use ala-carte
-- Better memory management
-- More Dashboard option such as Input, Graph, Image, Joystick, Group, Tab
+- [ ] New Protocol such as Matter, Lo-Ra and ESP-Now
+- [x] Change addSensor to accept Float, Int, String
+- [x] addSensor no need callback functions
+- [x] Custom Card size
+- [ ] Custom Icon size
+- [ ] More CSS option
+- [ ] Adding Slider
+- [ ] Adding Joystick
+- [x] Adding input Number and Text
+- [ ] Adding regex option on input
+- [ ] Adding bar graph
+- [ ] Adding line graph
+- [x] OTA from .bin
+- [ ] OTA from URL
+- [ ] Upload custom CSS on web interface
+- [ ] Device/firmware info and debug
+- [ ] Adding firmware info field and JSON on SPIFF
+- [ ] Spilit the codebase to smaller chunk so can use ala-carte
+- [ ] Better memory management
+- [x] Change `String` to `const char*` for better memory management
+- [ ] Better documentation
+- [ ] More `#Define` option for reduce compilation size 
 
 ------------
 
