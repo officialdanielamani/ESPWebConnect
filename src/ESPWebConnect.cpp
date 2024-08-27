@@ -458,23 +458,24 @@ void ESPWebConnect::setAutoUpdate(unsigned long interval) {
     updateInterval = interval;
 }
 
-void ESPWebConnect::addSensor(const String& id, const String& name, const String& unit, const String& icon, int* intValue) {
+void ESPWebConnect::addSensor(const char* id, const char* name, const char* unit, const char* icon, int* intValue) {
     dashboardElements.emplace_back(id, name, unit, icon, intValue);
 }
 
-void ESPWebConnect::addSensor(const String& id, const String& name, const String& unit, const String& icon, float* floatValue) {
+void ESPWebConnect::addSensor(const char* id, const char* name, const char* unit, const char* icon, float* floatValue) {
     dashboardElements.emplace_back(id, name, unit, icon, floatValue);
 }
 
-void ESPWebConnect::addSensor(const String& id, const String& name, const String& unit, const String& icon, String* stringValue) {
+void ESPWebConnect::addSensor(const char* id, const char* name, const char* unit, const char* icon, String* stringValue) {
     dashboardElements.emplace_back(id, name, unit, icon, stringValue);
 }
 
-void ESPWebConnect::addSwitch(const String& id, const String& name, const String& icon, bool* state) {
+
+void ESPWebConnect::addSwitch(const char* id, const char* name, const char* icon, bool* state) {
     dashboardElements.emplace_back(id, name, icon, state);
 
     // Register the toggle switch handler
-    server.on(("/toggleSwitch?id=" + id).c_str(), HTTP_GET, [this, state](AsyncWebServerRequest *request) {
+    server.on((String("/toggleSwitch?id=") + id).c_str(), HTTP_GET, [this, state](AsyncWebServerRequest *request) {
         if (!checkAuth(request)) return;
         if (request->hasParam("state")) {
             *state = request->getParam("state")->value().equalsIgnoreCase("true");
@@ -485,22 +486,22 @@ void ESPWebConnect::addSwitch(const String& id, const String& name, const String
     });
 }
 
-void ESPWebConnect::addButton(const String& id, const String& name, const String& icon, std::function<void()> onPress) {
+void ESPWebConnect::addButton(const char* id, const char* name, const char* icon, std::function<void()> onPress) {
     dashboardElements.emplace_back(id, name, icon, onPress);
 
     // Register the button press handler
-    server.on(("/pressButton?id=" + id).c_str(), HTTP_GET, [this, onPress](AsyncWebServerRequest *request) {
+    server.on((String("/pressButton?id=") + id).c_str(), HTTP_GET, [this, onPress](AsyncWebServerRequest *request) {
         if (!checkAuth(request)) return;
         onPress();
         request->send(200, "text/plain", "Button pressed");
     });
 }
 
-void ESPWebConnect::addInputNum(const String& id, const String& name, const String& icon, int* variable) {
+void ESPWebConnect::addInputNum(const char* id, const char* name, const char* icon, int* variable) {
     dashboardElements.emplace_back(id, name, icon, variable);
 
     // Register a URL handler for form submission
-    server.on(("/" + id).c_str(), HTTP_POST, [this, variable](AsyncWebServerRequest *request) {
+    server.on((String("/") + id).c_str(), HTTP_POST, [this, variable](AsyncWebServerRequest *request) {
         if (!checkAuth(request)) return;
         if (request->hasParam("value", true)) {
             *variable = request->getParam("value", true)->value().toInt();
@@ -511,11 +512,11 @@ void ESPWebConnect::addInputNum(const String& id, const String& name, const Stri
     });
 }
 
-void ESPWebConnect::addInputNum(const String& id, const String& name, const String& icon, float* variable) {
+void ESPWebConnect::addInputNum(const char* id, const char* name, const char* icon, float* variable) {
     dashboardElements.emplace_back(id, name, icon, variable);
 
     // Register a URL handler for form submission
-    server.on(("/" + id).c_str(), HTTP_POST, [this, variable](AsyncWebServerRequest *request) {
+    server.on((String("/") + id).c_str(), HTTP_POST, [this, variable](AsyncWebServerRequest *request) {
         if (!checkAuth(request)) return;
         if (request->hasParam("value", true)) {
             *variable = request->getParam("value", true)->value().toFloat();
@@ -526,10 +527,11 @@ void ESPWebConnect::addInputNum(const String& id, const String& name, const Stri
     });
 }
 
-void ESPWebConnect::addInputText(const String& id, const String& name, const String& icon, String* variable) {
+void ESPWebConnect::addInputText(const char* id, const char* name, const char* icon, String* variable) {
     dashboardElements.emplace_back(id, name, icon, variable);
+
     // Register a URL handler for form submission
-    server.on(("/" + id).c_str(), HTTP_POST, [this, variable](AsyncWebServerRequest *request) {
+    server.on((String("/") + id).c_str(), HTTP_POST, [this, variable](AsyncWebServerRequest *request) {
         if (!checkAuth(request)) return;
         if (request->hasParam("value", true)) {
             *variable = request->getParam("value", true)->value();  // Store the string value
@@ -540,26 +542,25 @@ void ESPWebConnect::addInputText(const String& id, const String& name, const Str
     });
 }
 
-
-void ESPWebConnect::setIconColor(const String& id, const String& color) {
-    for (auto& element : dashboardElements) {
-        if (element.id == id) {
-            element.color = color; // Set color regardless of element type
-            break;
-        }
-    }
-}
-
 void ESPWebConnect::setAllCardSize(int width, int height) {
     baseWidth = width;
     baseHeight = height;
 }
 
-void ESPWebConnect::setCardSize(const String& id, float multiplierX, float multiplierY) {
+void ESPWebConnect::setCardSize(const char* id, float multiplierX, float multiplierY) {
     for (auto& element : dashboardElements) {
-        if (element.id == id) {
+        if (strcmp(element.id, id) == 0) {  // Compare id using strcmp
             element.sizeMultiplierX = multiplierX;
             element.sizeMultiplierY = multiplierY;
+            break;
+        }
+    }
+}
+
+void ESPWebConnect::setIconColor(const char* id, const char* color) {
+    for (auto& element : dashboardElements) {
+        if (strcmp(element.id, id) == 0) {
+            element.color = color;
             break;
         }
     }
@@ -804,7 +805,7 @@ String ESPWebConnect::generateDashboardHTML() {
     html += "<script>function updateReadings() {";
     html += "fetch('/readings').then(response => response.json()).then(data => {";
     for (auto &element : dashboardElements) {
-        String sensorId = element.id;
+        String sensorId = String(element.id);
         sensorId.toLowerCase();
         if (element.type == DashboardElement::SENSOR_INT || element.type == DashboardElement::SENSOR_FLOAT || element.type == DashboardElement::SENSOR_STRING) {
             html += "document.getElementById('" + sensorId + "').innerText = data." + sensorId + ";";
@@ -813,12 +814,13 @@ String ESPWebConnect::generateDashboardHTML() {
     html += "});";
     html += "setTimeout(updateReadings, " + String(updateInterval) + ");";
     html += "}</script>";
+
     // Add JavaScript for updating switches
     html += "<script>function updateSwitches() {";
     html += "fetch('/switches').then(response => response.json()).then(data => {";
     for (auto &element : dashboardElements) {
         if (element.type == DashboardElement::SWITCH) {
-            String switchId = element.id;
+            String switchId = String(element.id);
             switchId.toLowerCase();
             html += "document.getElementById('" + switchId + "').checked = data['" + switchId + "'];";
         }
@@ -826,6 +828,7 @@ String ESPWebConnect::generateDashboardHTML() {
     html += "});";
     html += "setTimeout(updateSwitches, " + String(updateInterval) + ");";
     html += "}</script>";
+
     // WebSocket for notifications (unchanged)
     html += "<script>var webSocket = new WebSocket('ws://' + window.location.hostname + '/ws');";
     html += "webSocket.onmessage = function(event) {";
@@ -843,6 +846,7 @@ String ESPWebConnect::generateDashboardHTML() {
     html += "if (timeout > 0) { setTimeout(function() { banner.style.display = 'none'; }, timeout * 1000); }";
     html += "}";
     html += "</script>";
+
     // Add JavaScript for handling form submissions via AJAX (unchanged)
     html += "<script>";
     html += "function submitInputNum(id) {";
@@ -854,14 +858,15 @@ String ESPWebConnect::generateDashboardHTML() {
     html += "  }).then(response => response.text())";
     html += "  .then(text => {";
     html += "    console.log(text);";
-    html += "    alert('Value updated successfully');"; // Optional: give feedback to the user
+    html += "    alert('Value updated successfully');";
     html += "  }).catch(error => {";
     html += "    console.error('Error:', error);";
-    html += "    alert('Failed to update value');"; // Optional: alert in case of failure
+    html += "    alert('Failed to update value');";
     html += "  });";
-    html += "  return false;"; // Prevent default form submission
+    html += "  return false;";
     html += "}";
     html += "</script>";
+
     // JavaScript function to handle text input submission
     html += "<script>";
     html += "function submitInputText(id) {";
@@ -873,14 +878,15 @@ String ESPWebConnect::generateDashboardHTML() {
     html += "  }).then(response => response.text())";
     html += "  .then(text => {";
     html += "    console.log(text);";
-    html += "    alert('Value updated successfully');"; // Optional feedback to the user
+    html += "    alert('Value updated successfully');";
     html += "  }).catch(error => {";
     html += "    console.error('Error:', error);";
-    html += "    alert('Failed to update value');"; // Optional alert in case of failure
+    html += "    alert('Failed to update value');";
     html += "  });";
-    html += "  return false;"; // Prevent default form submission
+    html += "  return false;";
     html += "}";
     html += "</script>";
+
     // Body onload function includes sensor and switch updates
     html += "</head><body onload='updateReadings(); updateSwitches();'>";
     html += "<div id='notificationBanner' class='notification-banner' style='display: none;'>";
@@ -891,13 +897,16 @@ String ESPWebConnect::generateDashboardHTML() {
     html += "<br><h1>" + title + "</h1>";
     html += "<br><p>" + description + "</p>";
     html += "<div class='dashboard'>";
+
     // Generate the dashboard items
     for (auto &element : dashboardElements) {
         html += generateDashboardItem(element);
     }
+    
     html += "</div>";
     html += "<footer><button onclick=\"window.location.href='/espwebc'\">Go to ESP Web Config</button>";
     html += "<a href=\"danielamani.com\" style=\"color: white;\">Code by: DanielAmani.com</a><br></footer>";
+
     // Add JavaScript functions for toggling switches and pressing buttons (unchanged)
     html += "<script>function toggleSwitch(id) {";
     html += "var checkbox = document.getElementById(id);";
@@ -911,18 +920,18 @@ String ESPWebConnect::generateDashboardHTML() {
     html += "xhr.send();";
     html += "}</script>";
     html += "</body></html>";
+    
     return html;
 }
 
 String ESPWebConnect::generateDashboardItem(const DashboardElement& element) {
     String html;
-    String elementId = element.id;
+    String elementId = String(element.id);
     elementId.toLowerCase();
 
     int calculatedWidth = baseWidth * element.sizeMultiplierX;
     int calculatedHeight = baseHeight * element.sizeMultiplierY;
 
-    // Ensure the calculated width and height are positive and at least 64 pixels
     if (calculatedWidth < 64) {
         calculatedWidth = 64;
     }
@@ -937,30 +946,75 @@ String ESPWebConnect::generateDashboardItem(const DashboardElement& element) {
     style += "'";
 
     html += "<div class='card' " + style + ">";
-    html += "<div class='icon'><i class='" + element.icon + "' style='color: " + element.color + ";'></i></div>";
-    html += "<div class='sensor-name'>" + element.name + "</div>";
 
-    if (element.type == DashboardElement::SENSOR_INT) {
-        html += "<div class='sensor-value'><span id='" + elementId + "'>" + String(*element.intValue) + "</span> <span class='sensor-unit'>" + element.unit + "</span></div>";
-    } else if (element.type == DashboardElement::SENSOR_FLOAT) {
-        html += "<div class='sensor-value'><span id='" + elementId + "'>" + String(*element.floatValue) + "</span> <span class='sensor-unit'>" + element.unit + "</span></div>";
-    } else if (element.type == DashboardElement::SENSOR_STRING) {
-        html += "<div class='sensor-value'><span id='" + elementId + "'>" + *element.stringValue + "</span> <span class='sensor-unit'>" + element.unit + "</span></div>";
-    } else if (element.type == DashboardElement::SWITCH) {
-        html += "<label class='switch'><input type='checkbox' id='" + elementId + "' onclick='toggleSwitch(\"" + elementId + "\")'><span class='slider_sw'></span></label>";
-    } else if (element.type == DashboardElement::BUTTON) {
-        html += "<button id='" + elementId + "' class='button' onclick='pressButton(\"" + elementId + "\")'>" + element.name + "</button>";
-    } else if (element.type == DashboardElement::INPUT_NUM || element.type == DashboardElement::INPUT_TEXT) {
-        String inputType = element.type == DashboardElement::INPUT_NUM ? "number" : "text";
-        html += "<form onsubmit='return submitInputNum(\"" + elementId + "\")'>";
-        html += "<input type='" + inputType + "' id='" + elementId + "' name='value'>";
-        html += "<button type='submit'>OK</button>";
-        html += "</form>";
+    // Check if icon is not empty before adding it to HTML
+    if (element.icon && String(element.icon).length() > 0) {
+        html += "<div class='icon'><i";
+        if (element.color && String(element.color).length() > 0) {
+            html += " style='color: " + String(element.color) + ";'";
+        }
+        html += " class='" + String(element.icon) + "'></i></div>";
     }
+
+    // Check if name is not empty before adding it to HTML
+    if (element.name && String(element.name).length() > 0) {
+        if(element.type != DashboardElement::BUTTON){
+            html += "<div class='sensor-name'>" + String(element.name) + "</div>";
+        }
+    }
+
+    String inputType;  // Declare outside the switch
+
+    switch (element.type) {
+        case DashboardElement::SENSOR_INT:
+            html += "<div class='sensor-value'><span id='" + elementId + "'>" + String(*element.intValue) + "</span>";
+            if (element.unit && String(element.unit).length() > 0) {
+                html += " <span class='sensor-unit'>" + String(element.unit) + "</span>";
+            }
+            html += "</div>";
+            break;
+
+        case DashboardElement::SENSOR_FLOAT:
+            html += "<div class='sensor-value'><span id='" + elementId + "'>" + String(*element.floatValue) + "</span>";
+            if (element.unit && String(element.unit).length() > 0) {
+                html += " <span class='sensor-unit'>" + String(element.unit) + "</span>";
+            }
+            html += "</div>";
+            break;
+
+        case DashboardElement::SENSOR_STRING:
+            html += "<div class='sensor-value'><span id='" + elementId + "'>" + *element.stringValue + "</span>";
+            if (element.unit && String(element.unit).length() > 0) {
+                html += " <span class='sensor-unit'>" + String(element.unit) + "</span>";
+            }
+            html += "</div>";
+            break;
+
+        case DashboardElement::SWITCH:
+            html += "<label class='switch'><input type='checkbox' id='" + elementId + "' onclick='toggleSwitch(\"" + elementId + "\")'><span class='slider_sw'></span></label>";
+            break;
+
+        case DashboardElement::BUTTON:
+            html += "<button id='" + elementId + "' class='button' onclick='pressButton(\"" + elementId + "\")'>" + String(element.name) + "</button>";
+            break;
+
+        case DashboardElement::INPUT_NUM:
+        case DashboardElement::INPUT_TEXT:
+            inputType = element.type == DashboardElement::INPUT_NUM ? "number" : "text";  // Assign within the case
+            html += "<form onsubmit='return submitInputNum(\"" + elementId + "\")'>";
+            html += "<input type='" + inputType + "' id='" + elementId + "' name='value'>";
+            html += "<button type='submit'>OK</button>";
+            html += "</form>";
+            break;
+
+        default:
+            // Handle any other types if necessary
+            break;
+    }
+
     html += "</div>";
     return html;
 }
-
 
 bool ESPWebConnect::checkAuth(AsyncWebServerRequest *request) {
     if (webSettings.Web_Lock) {
@@ -974,21 +1028,17 @@ bool ESPWebConnect::checkAuth(AsyncWebServerRequest *request) {
 
 void ESPWebConnect::handleButtonPress(AsyncWebServerRequest *request) {
     if (!request->hasArg("id")) {
-        // Serial.println("Bad Request: Missing button ID");
         request->send(400, "text/plain", "Bad Request: Missing button ID");
         return;
     }
 
     String id = request->arg("id");
-    // Serial.print("Button pressed with ID: ");
-    // Serial.println(id);
 
     bool buttonFound = false;
     for (auto &element : dashboardElements) {
-        if (element.id == id && element.type == DashboardElement::BUTTON) {
+        if (strcmp(element.id, id.c_str()) == 0 && element.type == DashboardElement::BUTTON) {  // Use strcmp to compare const char* with String's c_str()
             if (element.onPress) {
                 element.onPress();
-                // Serial.println("Button press function called");
             }
             buttonFound = true;
             break;
@@ -998,7 +1048,6 @@ void ESPWebConnect::handleButtonPress(AsyncWebServerRequest *request) {
     if (buttonFound) {
         request->send(200, "text/plain", "Button pressed");
     } else {
-        // Serial.println("Button not found");
         request->send(404, "text/plain", "Button not found");
     }
 }
@@ -1021,24 +1070,10 @@ bool ESPWebConnect::isAPMode() const {
     return WiFi.getMode() & WIFI_AP;
 }
 
-String ESPWebConnect::generateSwitchesJSON() {
-    String json = "{";
-    for (auto &element : dashboardElements) {
-        if (element.type == DashboardElement::SWITCH) {
-            String switchId = element.id;
-            switchId.toLowerCase();
-            json += "\"" + switchId + "\": " + (*element.state ? "true" : "false") + ",";
-        }
-    }
-    json.remove(json.length() - 1);
-    json += "}";
-    return json;
-}
-
 String ESPWebConnect::generateReadingsJSON() {
     String json = "{";
     for (auto &element : dashboardElements) {
-        String sensorId = element.id;
+        String sensorId = String(element.id);
         sensorId.toLowerCase();
 
         if (element.type == DashboardElement::SENSOR_INT) {
@@ -1046,7 +1081,7 @@ String ESPWebConnect::generateReadingsJSON() {
         } else if (element.type == DashboardElement::SENSOR_FLOAT) {
             json += "\"" + sensorId + "\":\"" + String(*element.floatValue) + "\",";
         } else if (element.type == DashboardElement::SENSOR_STRING) {
-            json += "\"" + sensorId + "\":\"" + *(element.stringValue) + "\",";
+            json += "\"" + sensorId + "\":\"" + String(*element.stringValue) + "\",";
         }
     }
     if (json.length() > 1) {
@@ -1057,6 +1092,22 @@ String ESPWebConnect::generateReadingsJSON() {
 }
 
 
+String ESPWebConnect::generateSwitchesJSON() {
+    String json = "{";
+    for (auto &element : dashboardElements) {
+        if (element.type == DashboardElement::SWITCH) {
+            // Convert the const char* id to lowercase
+            String switchId = String(element.id);
+            switchId.toLowerCase();
+            json += "\"" + switchId + "\": " + (*element.state ? "true" : "false") + ",";
+        }
+    }
+    if (json.length() > 1) {
+        json.remove(json.length() - 1); // Remove the last comma
+    }
+    json += "}";
+    return json;
+}
 
 bool ESPWebConnect::readWifiSettings(WifiSettings& settings) {
     File file = LittleFS.open("/settings-wifi.json", "r");

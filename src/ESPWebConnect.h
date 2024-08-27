@@ -40,18 +40,19 @@ public:
     void setAutoUpdate(unsigned long interval);
     void setAllCardSize(int width, int height);
 
-    void addSensor(const String &id, const String &name, const String &unit, const String &icon, int *variable);
-    void addSensor(const String &id, const String &name, const String &unit, const String &icon, float *variable);
-    void addSensor(const String &id, const String &name, const String &unit, const String &icon, String *variable);
+    void addSensor(const char *id, const char *name, const char *unit, const char *icon, int *intValue);
+    void addSensor(const char *id, const char *name, const char *unit, const char *icon, float *floatValue);
+    void addSensor(const char* id, const char* name, const char* unit, const char* icon, String* stringValue);
 
-    void addSwitch(const String &id, const String &name, const String &icon, bool *state);
-    void addButton(const String &id, const String &name, const String &icon, std::function<void()> onPress);
-    void addInputNum(const String &id, const String &name, const String &icon, int *variable);
-    void addInputNum(const String &id, const String &name, const String &icon, float *variable);
-    void addInputText(const String &id, const String &name, const String &icon, String *variable);
-    
-    void setCardSize(const String& id, float multiplierX, float multiplierY);
-    void setIconColor(const String &id, const String &color);
+    void addSwitch(const char *id, const char *name, const char *icon, bool *state);
+    void addButton(const char *id, const char *name, const char *icon, std::function<void()> onPress);
+    void addInputNum(const char *id, const char *name, const char *icon, int *variable);
+    void addInputNum(const char *id, const char *name, const char *icon, float *variable);
+    void addInputText(const char* id, const char* name, const char* icon, String* variable);
+
+    void setCardSize(const char* id, float multiplierX, float multiplierY);
+    void setIconColor(const char* id, const char* color);
+
     void setDashPath(const String &path);
     void setTitle(const String &title);
     void setDesc(const String &description);
@@ -106,52 +107,53 @@ private:
 
 struct DashboardElement {
     enum Type { SENSOR_INT, SENSOR_FLOAT, SENSOR_STRING, SWITCH, BUTTON, INPUT_NUM, INPUT_TEXT } type;
-    String id;
-    String name;
-    String unit;
-    String icon;
-    String color;
-    int* intValue;
-    float* floatValue;
-    String* stringValue;
-    bool* state;
+    const char* id;
+    const char* name;
+    const char* unit;
+    const char* icon;
+    const char* color;
+    union {
+        int* intValue;
+        float* floatValue;
+        String* stringValue;  // Changed back to String* for mutable string handling
+        bool* state;
+    };
     std::function<void()> onPress;
     float sizeMultiplierX; // Multiplier for width
     float sizeMultiplierY; // Multiplier for height
 
     // Constructor for int sensor
-    DashboardElement(const String& id, const String& name, const String& unit, const String& icon, int* intValue)
-        : type(SENSOR_INT), id(id), name(name), unit(unit), icon(icon), color(""), intValue(intValue), floatValue(nullptr), stringValue(nullptr), state(nullptr), onPress(nullptr), sizeMultiplierX(1.0), sizeMultiplierY(1.0) {}
+    DashboardElement(const char* id, const char* name, const char* unit, const char* icon, int* intValue)
+        : type(SENSOR_INT), id(id), name(name), unit(unit), icon(icon), color(nullptr), intValue(intValue), sizeMultiplierX(1.0), sizeMultiplierY(1.0) {}
 
     // Constructor for float sensor
-    DashboardElement(const String& id, const String& name, const String& unit, const String& icon, float* floatValue)
-        : type(SENSOR_FLOAT), id(id), name(name), unit(unit), icon(icon), color(""), intValue(nullptr), floatValue(floatValue), stringValue(nullptr), state(nullptr), onPress(nullptr), sizeMultiplierX(1.0), sizeMultiplierY(1.0) {}
+    DashboardElement(const char* id, const char* name, const char* unit, const char* icon, float* floatValue)
+        : type(SENSOR_FLOAT), id(id), name(name), unit(unit), icon(icon), color(nullptr), floatValue(floatValue), sizeMultiplierX(1.0), sizeMultiplierY(1.0) {}
 
     // Constructor for string sensor
-    DashboardElement(const String& id, const String& name, const String& unit, const String& icon, String* stringValue)
-        : type(SENSOR_STRING), id(id), name(name), unit(unit), icon(icon), color(""), intValue(nullptr), floatValue(nullptr), stringValue(stringValue), state(nullptr), onPress(nullptr), sizeMultiplierX(1.0), sizeMultiplierY(1.0) {}
+    DashboardElement(const char* id, const char* name, const char* unit, const char* icon, String* stringValue)
+        : type(SENSOR_STRING), id(id), name(name), unit(unit), icon(icon), color(nullptr), stringValue(stringValue), sizeMultiplierX(1.0), sizeMultiplierY(1.0) {}
 
     // Constructor for switches
-    DashboardElement(const String& id, const String& name, const String& icon, bool* state)
-        : type(SWITCH), id(id), name(name), unit(""), icon(icon), color(""), intValue(nullptr), floatValue(nullptr), stringValue(nullptr), state(state), onPress(nullptr), sizeMultiplierX(1.0), sizeMultiplierY(1.0) {}
+    DashboardElement(const char* id, const char* name, const char* icon, bool* state)
+        : type(SWITCH), id(id), name(name), unit(""), icon(icon), color(nullptr), state(state), sizeMultiplierX(1.0), sizeMultiplierY(1.0) {}
 
     // Constructor for buttons
-    DashboardElement(const String& id, const String& name, const String& icon, std::function<void()> onPress)
-        : type(BUTTON), id(id), name(name), unit(""), icon(icon), color(""), intValue(nullptr), floatValue(nullptr), stringValue(nullptr), state(nullptr), onPress(onPress), sizeMultiplierX(1.0), sizeMultiplierY(1.0) {}
+    DashboardElement(const char* id, const char* name, const char* icon, std::function<void()> onPress)
+        : type(BUTTON), id(id), name(name), unit(""), icon(icon), color(nullptr), onPress(onPress), sizeMultiplierX(1.0), sizeMultiplierY(1.0) {}
 
     // Constructor for integer input
-    DashboardElement(const String& id, const String& name, const String& icon, int* intValue)
-        : type(INPUT_NUM), id(id), name(name), unit(""), icon(icon), color(""), intValue(intValue), floatValue(nullptr), stringValue(nullptr), state(nullptr), onPress(nullptr), sizeMultiplierX(1.0), sizeMultiplierY(1.0) {}
+    DashboardElement(const char* id, const char* name, const char* icon, int* intValue)
+        : type(INPUT_NUM), id(id), name(name), unit(""), icon(icon), color(nullptr), intValue(intValue), sizeMultiplierX(1.0), sizeMultiplierY(1.0) {}
 
     // Constructor for float input
-    DashboardElement(const String& id, const String& name, const String& icon, float* floatValue)
-        : type(INPUT_NUM), id(id), name(name), unit(""), icon(icon), color(""), intValue(nullptr), floatValue(floatValue), stringValue(nullptr), state(nullptr), sizeMultiplierX(1.0), sizeMultiplierY(1.0) {}
+    DashboardElement(const char* id, const char* name, const char* icon, float* floatValue)
+        : type(INPUT_NUM), id(id), name(name), unit(""), icon(icon), color(nullptr), floatValue(floatValue), sizeMultiplierX(1.0), sizeMultiplierY(1.0) {}
 
     // Constructor for text input
-    DashboardElement(const String& id, const String& name, const String& icon, String* stringValue)
-        : type(INPUT_TEXT), id(id), name(name), unit(""), icon(icon), color(""), intValue(nullptr), floatValue(nullptr), stringValue(stringValue), state(nullptr), sizeMultiplierX(1.0), sizeMultiplierY(1.0) {}
+    DashboardElement(const char* id, const char* name, const char* icon, String* stringValue)
+        : type(INPUT_TEXT), id(id), name(name), unit(""), icon(icon), color(nullptr), stringValue(stringValue), sizeMultiplierX(1.0), sizeMultiplierY(1.0) {}
 };
-
     std::vector<DashboardElement> dashboardElements;
 
     int baseWidth = 200;  // Default base width in pixels
