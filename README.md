@@ -234,7 +234,8 @@ webConnect.sendNotification("notify1", "Hello World", "blue", "fa fa-info", "whi
 
 ## OTA update
 
-###OTA via File Upload
+### OTA via File Upload
+
 To update firware can go to ESP32 configuration page at `http://your-esp-ip/espwebc`. Can be updated using .bin file or via URL.
 For generating .bin file, on Arduino IDE top navigation go to `Sketch -> Export Compile Binary`. If success on your Arduino project there will be a new folder called build. Go inside and find folder related to ESP32. In last folder there will be;
 ```markdown
@@ -250,7 +251,8 @@ yourproject.ino
 ```
 Select `yourproject.ino.bin` as .bin file to upload. Wait awhile until your ESP32 reboot. If success you can see the changes and update.
 
-###OTA via URL
+### OTA via URL
+
 -TODO
 
 ------------
@@ -381,8 +383,8 @@ void setup() {
     webConnect.begin();
     webConnect.setIconUrl("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css");
     webConnect.setCSS("style.css");
-	webConnect.setAllCardSize(180, 180);
-	webConnect.setDesc("My Smart Home Panel");
+    webConnect.setAllCardSize(180, 180);
+    webConnect.setDesc("My Smart Home Panel");
     webConnect.setAutoUpdate(2500);
     webConnect.addSwitch("relay-1", "Relay-1", "fa-regular fa-lightbulb", &relay1);
     webConnect.setIconColor("relay-1", "#D3D876");
