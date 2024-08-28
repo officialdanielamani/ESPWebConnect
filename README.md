@@ -239,13 +239,14 @@ To update firware can go to ESP32 configuration page at `http://your-esp-ip/espw
 For generating .bin file, on Arduino IDE top navigation go to `Sketch -> Export Compile Binary`. If success on your Arduino project there will be a new folder called build. Go inside and find folder related to ESP32. In last folder there will be;
 ```markdown
 yourproject.ino
-	/esp32.esp32.esp32da
-		yourproject.ino.bin
-		yourproject.ino.bootloader.bin
-		yourproject.ino.elf
-		yourproject.ino.map
-		yourproject.ino.merged.bin
-		yourproject.ino.partitions.bin
+	/build
+		/esp32.esp32.esp32da
+			yourproject.ino.bin
+			yourproject.ino.bootloader.bin
+			yourproject.ino.elf
+			yourproject.ino.map
+			yourproject.ino.merged.bin
+			yourproject.ino.partitions.bin
 ```
 Select `yourproject.ino.bin` as .bin file to upload. Wait awhile until your ESP32 reboot. If success you can see the changes and update.
 
