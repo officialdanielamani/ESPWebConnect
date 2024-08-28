@@ -1,9 +1,8 @@
-
 # ESPWebConnect Library for ESP32
 
 ## Overview
 
-`ESPWebConnect` is a comprehensive library designed for the ESP32 platform. It provides easy integration for WiFi, MQTT, WebSocket, and web-based dashboards to monitor and control your IoT devices. This library enables seamless connectivity and interaction with sensors, switches, and buttons through a web interface. More control, more customization, no longer need depending on 3rd party cloud provider.
+`ESPWebConnect` is a comprehensive library designed for the ESP32 platform. It provides easy integration for WiFi, MQTT, Web-Dashboard, OTA update to monitor and control your IoT devices. This library enables seamless connectivity and interaction with sensors, switches, and buttons through a web interface. More control, more customization, no longer need depending on 3rd party cloud provider.
 
 You can try use our installer at to test some example projects: ~~https://danielamani.com/project/core_firmware/index.html~~
 (Note only on Chrome Desktop, ensure disable Serial Monitor and Serial Plotter first)
@@ -18,12 +17,13 @@ This library is in **BETA** development and for internal usage of ProjectEDNA. D
 
 - Easy WiFi and MQTT configuration through a web interface (No more hardcoded WiFi).
 - Connects to WiFi networks and sets up Access Point mode for configuration.
-- Creates a web server for configuration and control.
+- Creates a Web Interface for configuration and control.
 - Customizable dashboard with icons and colors.
 - Publishes and subscribes to MQTT topics.
 - Supports LittleFS for file storage.
 - Integrates ESPAsyncwebserver and WebSockets for real-time updates.
 - Allows the addition of sensors, switches, and buttons to a customizable dashboard.
+- Over The Air (OTA) update, can update firmware using .bin or via URL
 
 ------------
 
@@ -232,6 +232,28 @@ webConnect.sendNotification("notify1", "Hello World", "blue", "fa fa-info", "whi
 
 ------------
 
+## OTA update
+
+###OTA via File Upload
+To update firware can go to ESP32 configuration page at `http://your-esp-ip/espwebc`. Can be updated using .bin file or via URL.
+For generating .bin file, on Arduino IDE top navigation go to `Sketch -> Export Compile Binary`. If success on your Arduino project there will be a new folder called build. Go inside and find folder related to ESP32. In last folder there will be;
+```markdown
+yourproject.ino
+	/esp32.esp32.esp32da
+		yourproject.ino.bin
+		yourproject.ino.bootloader.bin
+		yourproject.ino.elf
+		yourproject.ino.map
+		yourproject.ino.merged.bin
+		yourproject.ino.partitions.bin
+```
+Select `yourproject.ino.bin` as .bin file to upload. Wait awhile until your ESP32 reboot. If success you can see the changes and update.
+
+###OTA via URL
+-TODO
+
+------------
+
 ## ESP32 Setting via web interface
 
 [![Example ESP32 Configuration page](https://raw.githubusercontent.com/officialdanielamani/ESPWebConnect/main/image/Webc.png "Example ESP32 Configuration page")](hthttps://raw.githubusercontent.com/officialdanielamani/ESPWebConnect/main/image/Webc.pngtp:// "Example ESP32 Configuration page")
@@ -413,7 +435,7 @@ float updateCount() {
 - [ ] Adding bar graph
 - [ ] Adding line graph
 - [x] OTA from .bin
-- [ ] OTA from URL
+- [x] OTA from URL
 - [ ] Upload custom CSS on web interface
 - [ ] Device/firmware info and debug
 - [ ] Adding firmware info field and JSON on SPIFF
