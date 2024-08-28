@@ -126,14 +126,14 @@ Default value is 200 if not set (Unit: pixel).
 
 This function will take reading and show it on the dashboard. It takes 5 arguments:
 ```cpp
-webConnect.addSensor("ID", "Text-to-display", "Unit", "Icon", variable);`
+webConnect.addSensor("ID", "Text-to-display", "Unit", "Icon", variable);
 ```
 
 *Variable can be in float, int or String*
 
 Example:
 ```cpp
-webConnect.addSensor("tempDHT11", "Temperature", "°C", "fa fa-thermometer-half", readTemperature);
+webConnect.addSensor("tempDHT11", "Temperature", "°C", "fa fa-thermometer-half", &temperature);
 ```
 
 1. `tempDHT11` is the ID (This is needed for icon color)
