@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta name='viewport' content='width=device-width, initial-scale=1'>
     <link rel="stylesheet" type="text/css" href="style.css">
@@ -68,43 +69,94 @@
                 });
         }
 
+        function fetchLORASettings() {
+            fetch('/getLORASettings')
+                .then(response => {
+                    if (!response.ok) throw new Error('Network response was not ok');
+                    return response.json();
+                })
+                .then(data => {
+                    document.getElementById('LORA_Key').value = data.LORA_Key;
+                    document.getElementById('LORA_CRC').checked = data.LORA_CRC;
+                    document.getElementById('LORA_RSSI').value = data.LORA_RSSI;
+                    document.getElementById('LORA_PacketHZErr').value = data.LORA_PacketHZErr;
+                    document.getElementById('LORA_Spread').value = data.LORA_Spread;
+                    document.getElementById('LORA_Coding').value = data.LORA_Coding;
+                    document.getElementById('LORA_TxPwr').value = data.LORA_TxPwr;
+                    document.getElementById('LORA_Reg').value = data.LORA_Reg;
+                })
+                .catch(error => {
+                    console.error('Error fetching LORA settings:', error);
+                    alert('Failed to fetch LORA settings.');
+                });
+        }
+
         function handleSubmit(event) {
             event.preventDefault();
             const formId = event.target.id;
             const formData = new FormData(event.target);
 
-            // Convert FormData to JSON
-            const json = JSON.stringify(Object.fromEntries(formData.entries()));
+            let isValid = true;
+            let errorMessage = '';
 
+            // Validate LORA_Key if the form is loraForm
+            if (formId === 'loraForm') {
+                const keyLoRa = document.getElementById('LORA_Key').value;
+                if (!/^(0x)?[0-9A-Fa-f]{1,2}$/.test(keyLoRa) || parseInt(keyLoRa, 16) > 0xFF) {
+                    isValid = false;
+                    errorMessage += 'Invalid LORA_Key. Please enter a value between 0 and 0xFF.\n';
+                }
+            }
+
+            if (!isValid) {
+                alert(errorMessage);
+                return;
+            }
+
+            // Convert FormData to JSON maintaining the correct data types.
+            const object = Object.fromEntries(formData.entries());
+            if (formId === 'webForm') {
+                object.Web_Lock = document.getElementById('Web_Lock').checked;
+            }
+            const json = JSON.stringify(object);
+
+            // Adjust the URL construction based on the specific form being submitted.
             let url = '';
             if (formId === 'wifiForm') {
                 url = '/saveWifi';
             } else if (formId === 'mqttForm') {
                 url = '/saveMQTT';
             } else if (formId === 'webForm') {
-                formData.set('Web_Lock', document.getElementById('Web_Lock').checked ? "1" : "0");
                 url = '/saveWeb';
+            } else if (formId === 'loraForm') {
+                url = '/saveLORA';
             }
 
+            console.log("Submitting JSON:", json);
+
+            // Make the fetch POST request with appropriate headers and body as JSON.
             fetch(url, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: json
             }).then(response => {
-                if (!response.ok) throw new Error('Network response was not ok');
+                if (!response.ok) throw new Error(`HTTP status ${response.status}`);
                 return response.text();
             }).then(message => {
                 alert(message);
+                // Re-fetch settings to update the UI with the latest data from the server.
                 if (formId === 'wifiForm') {
                     fetchWifiSettings();
                 } else if (formId === 'mqttForm') {
                     fetchMQTTSettings();
                 } else if (formId === 'webForm') {
                     fetchWebSettings();
+                } else if (formId === 'loraForm') {
+                    fetchLORASettings();
                 }
             }).catch(error => {
                 console.error('Error:', error);
-                alert('Failed to save settings.');
+                alert('Failed to save settings: ' + error.message);
             });
         }
 
@@ -112,14 +164,20 @@
             evt.stopPropagation();
             evt.preventDefault();
 
-            var files = evt.target.files; // FileList object
+            var files = evt.target.files;
+            if (!files.length) {
+                alert("No file selected!");
+                return;
+            }
+
+            // Only handle one file upload at a time
             var formData = new FormData();
             formData.append('file', files[0]);
 
             var xhr = new XMLHttpRequest();
             xhr.open('POST', '/update-firmware', true);
 
-            xhr.onload = function() {
+            xhr.onload = function () {
                 if (xhr.status === 200) {
                     alert('Upload successful!');
                 } else {
@@ -130,10 +188,48 @@
             xhr.send(formData);
         }
 
+        function handleUrlSubmit(event) {
+            event.preventDefault(); // Prevent default form submission
+
+            const firmwareUrl = document.getElementById('firmwareUrl').value;
+
+            fetch(firmwareUrl)
+                .then(response => {
+                    if (!response.ok) throw new Error('Network response was not ok');
+                    return response.blob(); // Convert the response to a Blob
+                })
+                .then(blob => {
+                    const file = new File([blob], "firmware.bin", { type: "application/octet-stream" });
+                    uploadFirmwareFromURL(file); // Call the upload function with the downloaded file
+                })
+                .catch(error => {
+                    console.error('Error fetching firmware:', error);
+                    alert('Failed to download firmware: ' + error.message);
+                });
+        }
+
+        function uploadFirmwareFromURL(file) {
+            const formData = new FormData();
+            formData.append('file', file);
+
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', '/update-firmware', true);
+
+            xhr.onload = function () {
+                if (xhr.status === 200) {
+                    alert('OTA update via URL successful!');
+                } else {
+                    alert('OTA update via URL failed!');
+                }
+            };
+
+            xhr.send(formData);
+        }
+
         function rebootESP() {
             var xhr = new XMLHttpRequest();
             xhr.open('GET', '/espwebc-reboot', true);
-            xhr.onload = function() {
+            xhr.onload = function () {
                 if (xhr.status === 200) {
                     alert('Rebooting...');
                 } else {
@@ -147,71 +243,179 @@
             fetchWifiSettings();
             fetchMQTTSettings();
             fetchWebSettings();
+            fetchLORASettings(); // Fetch LORA settings on page load
             var fileInput = document.getElementById('file');
             fileInput.addEventListener('change', handleFileSelect, false);
+
+            // Ensure the form for URL does not submit multiple times
+            var urlForm = document.getElementById('otaUrlForm');
+            urlForm.addEventListener('submit', handleUrlSubmit, false);
         }
 
         window.onload = init;
     </script>
+
 </head>
+
 <body>
-<h1>ESP32 Configuration</h1>
-<p>This is where we can change all system configurations</p>
-<button onclick="window.location.href='/dashboard'">Back to Dashboard</button><br>
-<h2>WiFi Settings</h2>
-<form id="wifiForm" onsubmit="handleSubmit(event)">
-    <label for="SSID_Name">SSID/WiFi Name:</label>
-    <input type="text" id="SSID_Name" name="SSID_Name" required><br>
-    <label for="SSID_Pass">SSID/WiFi Password:</label>
-    <input type="password" id="SSID_Pass" name="SSID_Pass"><br>
-    <label for="ESP_MAC">ESP MAC Address:</label>
-    <input type="text" id="ESP_MAC" name="ESP_MAC" readonly><br>
-    <label for="SSID_AP_Name">AP SSID Name:</label>
-    <input type="text" id="SSID_AP_Name" name="SSID_AP_Name"><br>
-    <label for="SSID_AP_Pass">AP SSID Password:</label>
-    <input type="password" id="SSID_AP_Pass" name="SSID_AP_Pass"><br>
-    <button type="submit">Save WiFi Settings</button>
-</form>
+    <h1>ESP32 Configuration</h1>
+    <p>This is where we can change all system configurations</p>
+    <button onclick="window.location.href='/dashboard'">Back to Dashboard</button><br>
 
-<h2>MQTT Settings</h2>
-<form id="mqttForm" onsubmit="handleSubmit(event)">
-    <label for="MQTT_Broker">MQTT Broker:</label>
-    <input type="text" id="MQTT_Broker" name="MQTT_Broker" required><br>
-    <label for="MQTT_Port">MQTT Port:</label>
-    <input type="number" id="MQTT_Port" name="MQTT_Port" required><br>
-    <label for="MQTT_Send">MQTT Send Topic:</label>
-    <input type="text" id="MQTT_Send" name="MQTT_Send" required><br>
-    <label for="MQTT_Recv">MQTT Receive Topic:</label>
-    <input type="text" id="MQTT_Recv" name="MQTT_Recv" required><br>
-    <label for="MQTT_User">MQTT User:</label>
-    <input type="text" id="MQTT_User" name="MQTT_User"><br>
-    <label for="MQTT_Pass">MQTT Password:</label>
-    <input type="password" id="MQTT_Pass" name="MQTT_Pass"><br>
-    <button type="submit">Save MQTT Settings</button>
-</form>
+    <!-- WiFi Settings Card -->
+    <div class="center-container">
+        <div class="card" style="width: 80%;;">
+            <h2>WiFi Settings</h2>
+            <form id="wifiForm" onsubmit="handleSubmit(event)">
+                <label for="SSID_Name">SSID/WiFi Name:</label>
+                <input type="text" id="SSID_Name" name="SSID_Name" required><br>
+                <label for="SSID_Pass">SSID/WiFi Password:</label>
+                <input type="password" id="SSID_Pass" name="SSID_Pass"><br>
+                <label for="ESP_MAC">ESP MAC Address:</label>
+                <input type="text" id="ESP_MAC" name="ESP_MAC" readonly><br>
+                <label for="SSID_AP_Name">AP SSID Name:</label>
+                <input type="text" id="SSID_AP_Name" name="SSID_AP_Name"><br>
+                <label for="SSID_AP_Pass">AP SSID Password:</label>
+                <input type="password" id="SSID_AP_Pass" name="SSID_AP_Pass"><br>
+                <button type="submit">Save WiFi Settings</button>
+            </form>
+        </div>
+    </div>
 
-<h2>Web Settings</h2>
-<form id="webForm" onsubmit="handleSubmit(event)">
-    <label for="Web_User">Web User:</label>
-    <input type="text" id="Web_User" name="Web_User" required><br>
-    <label for="Web_Pass">Web Password:</label>
-    <input type="password" id="Web_Pass" name="Web_Pass" required><br>
-    <label for="Web_name">Web Name:</label>
-    <input type="text" id="Web_name" name="Web_name"><br>
-    <label for="Web_Lock">Web Lock:</label>
-    <input type="checkbox" id="Web_Lock" name="Web_Lock"><br>
-    <button type="submit">Save Web Settings</button>
-</form>
+    <!-- MQTT Settings Card -->
+    <div class="center-container">
+        <div class="card" style="width: 80%;;">
+            <h2>MQTT Settings</h2>
+            <form id="mqttForm" onsubmit="handleSubmit(event)">
+                <label for="MQTT_Broker">MQTT Broker:</label>
+                <input type="text" id="MQTT_Broker" name="MQTT_Broker" required><br>
+                <label for="MQTT_Port">MQTT Port:</label>
+                <input type="number" id="MQTT_Port" name="MQTT_Port" required><br>
+                <label for="MQTT_Send">MQTT Send Topic:</label>
+                <input type="text" id="MQTT_Send" name="MQTT_Send" required><br>
+                <label for="MQTT_Recv">MQTT Receive Topic:</label>
+                <input type="text" id="MQTT_Recv" name="MQTT_Recv" required><br>
+                <label for="MQTT_User">MQTT User:</label>
+                <input type="text" id="MQTT_User" name="MQTT_User"><br>
+                <label for="MQTT_Pass">MQTT Password:</label>
+                <input type="password" id="MQTT_Pass" name="MQTT_Pass"><br>
+                <button type="submit">Save MQTT Settings</button>
+            </form>
+        </div>
+    </div>
 
-<h2>OTA Update</h2>
-<form>
-    <input type="file" id="file" name="file">
-</form>
+    <!-- Web Settings Card -->
+    <div class="center-container">
+        <div class="card" style="width: 80%;;">
+            <h2>Web Settings</h2>
+            <form id="webForm" onsubmit="handleSubmit(event)">
+                <label for="Web_User">Web User:</label>
+                <input type="text" id="Web_User" name="Web_User" required><br>
+                <label for="Web_Pass">Web Password:</label>
+                <input type="password" id="Web_Pass" name="Web_Pass" required><br>
+                <label for="Web_name">Web Name:</label>
+                <input type="text" id="Web_name" name="Web_name"><br>
+                <label for="Web_Lock">Web Lock:</label>
+                <input type="checkbox" id="Web_Lock" name="Web_Lock"><br>
+                <button type="submit">Save Web Settings</button>
+            </form>
+        </div>
+    </div>
 
-<h2>Reboot</h2>
-<button style="background-color:orange; width: 25%;" onclick="rebootESP()">Reboot ESP</button><br><br>
-<footer>
-    <button onclick="window.location.href='dashboard'">Back to Dashboard</button>
-    <a href="danielamani.com" style="color: white;">Code by: DanielAmani.com</a><br></footer>
+    <!-- LORA Settings Card -->
+    <div class="center-container">
+        <div class="card" style="width: 80%;;">
+            <h2>LORA Settings</h2>
+            <form id="loraForm" onsubmit="handleSubmit(event)">
+                <label for="LORA_Key">LORA Key (0 to 0xFF):</label>
+                <input type="number" id="LORA_Key" name="LORA_Key" min="0" max="255" required><br>
+        
+                <label for="LORA_CRC">LORA CRC:</label>
+                <input type="checkbox" id="LORA_CRC" name="LORA_CRC"><br>
+        
+                <label for="LORA_RSSI">LORA RSSI:</label>
+                <input type="text" id="LORA_RSSI" name="LORA_RSSI" readonly><br>
+        
+                <label for="LORA_PacketHZErr">LORA Packet Hz Error:</label>
+                <input type="text" id="LORA_PacketHZErr" name="LORA_PacketHZErr" readonly><br>
+        
+                <label for="LORA_Spread">LORA Spread:</label>
+                <select id="LORA_Spread" name="LORA_Spread" required>
+                    <option value="6">6</option>
+                    <option value="7">7</option>
+                    <option value="8">8</option>
+                    <option value="9">9</option>
+                    <option value="10">10</option>
+                    <option value="11">11</option>
+                    <option value="12">12</option>
+                </select><br>
+        
+                <label for="LORA_Coding">LORA Coding:</label>
+                <select id="LORA_Coding" name="LORA_Coding" required>
+                    <option value="5">5</option>
+                    <option value="6">6</option>
+                    <option value="7">7</option>
+                    <option value="8">8</option>
+                </select><br>
+        
+                <label for="LORA_TxPwr">LORA Tx Power:</label>
+                <select id="LORA_TxPwr" name="LORA_TxPwr" required>
+                    <option value="2">2</option>
+                    <option value="5">5</option>
+                    <option value="7">7</option>
+                    <option value="10">10</option>
+                    <option value="13">13</option>
+                    <option value="17">17</option>
+                </select><br>
+        
+                <label for="LORA_Reg">LORA Region:</label>
+                <select id="LORA_Reg" name="LORA_Reg" required>
+                    <option value="433E6">433 MHz</option>
+                    <option value="868E6">868 MHz</option>
+                    <option value="915E6">915 MHz</option>
+                </select><br>
+        
+                <button type="submit">Save LORA Settings</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- OTA Update via File Upload Card -->
+    <div class="center-container">
+        <div class="card" style="width: 80%;;">
+            <h2>OTA Update via File Upload</h2>
+            <form id="otaFileForm">
+                <input type="file" id="file" name="file"><br>
+                <button type="button" onclick="document.getElementById('file').click()">Upload Firmware</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- OTA Update via URL Card -->
+    <div class="center-container">
+        <div class="card" style="width: 80%;;">
+            <h2>OTA Update via URL</h2>
+            <form id="otaUrlForm">
+                <label for="firmwareUrl">Firmware URL:</label>
+                <input type="text" id="firmwareUrl" name="firmwareUrl" placeholder="https://example.com/firmware.bin"
+                    required>
+                <button type="submit">Start OTA Update</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Reboot Card -->
+    <div class="center-container">
+        <div class="card" style="width: 80%;;">
+            <h2>Reboot</h2>
+            <button style="background-color:orange;" onclick="rebootESP()">Reboot ESP</button><br><br>
+        </div>
+    </div>
+
+    <footer>
+        <button onclick="window.location.href='dashboard'">Back to Dashboard</button>
+        <a href="https://danielamani.com" style="color: white;">Code by: DanielAmani.com</a><br>
+    </footer>
 </body>
+
 </html>

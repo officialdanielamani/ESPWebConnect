@@ -63,15 +63,10 @@ void ESPWebConnect::begin() {
     //});
 
     server.on("/espwebc", HTTP_GET, [this](AsyncWebServerRequest *request) {
-        if (!checkAuth(request)) return;
+    if (!checkAuth(request)) return;
 
-        if (request->hasParam("firmwareUrl")) {
-            String firmwareURL = request->getParam("firmwareUrl")->value();
-            request->send(200, "text/plain", "Starting OTA update...");
-            performOTAUpdateFromURL(firmwareURL);
-        } else {
-            request->send(LittleFS, "/espwebc.html", "text/html");
-        }
+        // No longer handling OTA update via firmware URL here
+        request->send(LittleFS, "/espwebc.html", "text/html");
     });
 
     server.on("/style.css", HTTP_GET, [this](AsyncWebServerRequest *request) {
@@ -154,6 +149,49 @@ void ESPWebConnect::begin() {
     }
 );
 
+server.on("/saveLORA", HTTP_POST, [](AsyncWebServerRequest *request) {},
+NULL, // No file upload handler
+[this](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total) {
+    if (index == 0) {
+        request->_tempObject = new String();  // Initialize a String to accumulate the data
+    }
+    String* body = (String*)request->_tempObject;
+    body->concat((char*)data, len);  // Accumulate the incoming data
+
+    if (index + len == total) {  // Last chunk of data
+        Serial.println("Received LoRa settings: " + *body);
+
+        // Parse the JSON from the accumulated String
+        StaticJsonDocument<512> doc;
+        DeserializationError error = deserializeJson(doc, *body);
+        if (error) {
+            Serial.println("Failed to parse JSON!");
+            request->send(400, "text/plain", "Failed to parse JSON");
+            delete body;  // Clean up the String object
+            return;
+        }
+
+        // Save the JSON to a file
+        File file = LittleFS.open("/settings-lora.json", "w");
+        if (!file) {
+            Serial.println("Failed to open LoRa settings file for writing");
+            request->send(500, "text/plain", "Failed to open file for writing.");
+            delete body;  // Clean up the String object
+            return;
+        }
+
+        // Serialize JSON directly to file
+        serializeJson(doc, file);
+        file.close();
+        Serial.println("LoRa settings saved successfully");
+
+        // Respond to the client
+        request->send(200, "text/plain", "LoRa settings saved successfully");
+        delete body;  // Clean up the String object
+    }
+});
+
+
     server.on("/espwebc-reboot", HTTP_GET, [this](AsyncWebServerRequest *request) {
         if (!checkAuth(request)) return;
         request->send(200, "text/plain", "Rebooting...");
@@ -163,6 +201,11 @@ void ESPWebConnect::begin() {
     server.on("/getWifiSettings", HTTP_GET, [this](AsyncWebServerRequest *request) {
         if (!checkAuth(request)) return;
         request->send(LittleFS, "/settings-wifi.json", "application/json");
+    });
+
+    server.on("/getLORASettings", HTTP_GET, [this](AsyncWebServerRequest *request) {
+        if (!checkAuth(request)) return;
+        request->send(LittleFS, "/settings-lora.json", "application/json");
     });
 
     #ifdef ENABLE_MQTT
@@ -266,21 +309,21 @@ void ESPWebConnect::begin() {
     }
 );
 
-    server.on("/getWebSettings", HTTP_GET, [this](AsyncWebServerRequest *request) {
+    server.on("/getWebSettings", HTTP_GET, [this](AsyncWebServerRequest *request)
+              {
         if (!checkAuth(request)) return;
-        request->send(LittleFS, "/settings-web.json", "application/json");
+        request->send(LittleFS, "/settings-web.json", "application/json"); 
     });
 
-    server.on("/update-firmware", HTTP_POST, 
-        [](AsyncWebServerRequest *request) {
+    server.on("/update-firmware", HTTP_POST, [](AsyncWebServerRequest *request)
+              {
             if (Update.hasError()) {
                 request->send(500, "text/plain", "OTA update FAILED");
             } else {
                 request->send(200, "text/plain", "OTA update SUCCESS. Rebooting...");
                 ESP.restart();  // Restart the device after sending the response
-            }
-        }, 
-        [](AsyncWebServerRequest *request, const String &filename, size_t index, uint8_t *data, size_t len, bool final) {
+            } }, [](AsyncWebServerRequest *request, const String &filename, size_t index, uint8_t *data, size_t len, bool final)
+              {
             if (index == 0) {
                 Serial.printf("Update Start: %s\n", filename.c_str());
                 if (!Update.begin(UPDATE_SIZE_UNKNOWN)) { // Start with max available size
@@ -299,21 +342,19 @@ void ESPWebConnect::begin() {
                     Update.printError(Serial);
                     Serial.println("Update Failed");
                 }
-            }
-        });
+    } });
 
+    server.on("/ota-url", HTTP_POST, [this](AsyncWebServerRequest *request)
+              {
+    if (!checkAuth(request)) return; // Ensure the user is authenticated
 
-    server.on("/ota", HTTP_POST, [this](AsyncWebServerRequest *request) {
-        if (!checkAuth(request)) return;
-
-        if (request->hasParam("url", true)) {
-            String firmwareURL = request->getParam("url", true)->value();
-            request->send(200, "text/plain", "OTA update started...");
-            performOTAUpdateFromURL(firmwareURL);
-        } else {
-            request->send(400, "text/plain", "Missing URL parameter");
-        }
-    });
+    if (request->hasParam("url", true)) {
+        String firmwareURL = request->getParam("url", true)->value();
+        request->send(200, "text/plain", "OTA update started from URL...");
+        performOTAUpdateFromURL(firmwareURL); // Function to handle the OTA update from the URL
+    } else {
+        request->send(400, "text/plain", "Missing URL parameter");
+    } });
 
     server.begin();
 
@@ -567,151 +608,95 @@ void ESPWebConnect::setIconColor(const char* id, const char* color) {
 }
 
 void ESPWebConnect::performOTAUpdateFromURL(const String& firmwareURL) {
-    esp_task_wdt_config_t wdt_config = {
-        .timeout_ms = 30000, // 30 seconds timeout
-        .idle_core_mask = (1 << 0) | (1 << 1), // Watchdog on both cores
-        .trigger_panic = true // Trigger a panic on watchdog timeout
-    };
+    WiFiClientSecure client;
+    client.setInsecure();  // Use insecure mode (no certificate check)
 
-    if (esp_task_wdt_status(NULL) == ESP_ERR_NOT_FOUND) {
-        esp_task_wdt_init(&wdt_config);
+    Serial.println("Connecting to " + firmwareURL);
+
+    if (!client.connect(firmwareURL.c_str(), 443)) {
+        Serial.println("Connection to server failed!");
+        return;
     }
 
-    WiFiClientSecure client;
-    client.setInsecure();
+    // Make the GET request
+    client.print(String("GET ") + firmwareURL + " HTTP/1.1\r\n" +
+                 "Host: " + firmwareURL + "\r\n" +
+                 "Connection: close\r\n\r\n");
 
-    String host = firmwareURL.substring(8, firmwareURL.indexOf("/", 8));
-    String path = firmwareURL.substring(firmwareURL.indexOf("/", 8));
-
-    if (client.connect(host.c_str(), 443)) {
-        Serial.println("Connected to server");
-
-        client.print("GET " + path + " HTTP/1.1\r\n");
-        client.print("Host: " + host + "\r\n");
-        client.println("Connection: close\r\n");
-        client.println();
-
-        bool endOfHeaders = false;
-        String headers = "";
-        String http_response_code = "error";
-        const size_t bufferSize = 256;
-        uint8_t buffer[bufferSize];
-        String location;
-
-        while (client.connected() && !endOfHeaders) {
-            if (client.available()) {
-                String line = client.readStringUntil('\n');
-                headers += line + "\n";
-                if (line.startsWith("HTTP/1.1")) {
-                    http_response_code = line.substring(9, 12);
-                }
-                if (line.startsWith("Location: ")) {
-                    location = line.substring(10);
-                    location.trim();
-                }
-                if (line == "\r") {
-                    endOfHeaders = true;
-                }
-            }
+    // Wait for a response and read the headers
+    while (client.connected()) {
+        String line = client.readStringUntil('\n');
+        if (line == "\r") {
+            break; // Headers finished
         }
+    }
 
-        Serial.println("HTTP response code: " + http_response_code);
+    // Start the OTA update
+    if (!Update.begin(UPDATE_SIZE_UNKNOWN)) {
+        Serial.println("Cannot begin OTA update");
+        return;
+    }
 
-        if (http_response_code == "302" && location.length() > 0) {
-            Serial.println("Following redirect to: " + location);
-            performOTAUpdateFromURL(location);
+    // Read the payload and write it to flash
+    size_t written = 0;
+    uint8_t buffer[1024];
+    while (client.connected() && !client.available()) delay(1);
+
+    while (client.available()) {
+        size_t len = client.read(buffer, sizeof(buffer));
+        if (len <= 0) break;
+
+        if (Update.write(buffer, len) != len) {
+            Serial.println("Failed to write during OTA update");
+            Update.printError(Serial);
             return;
         }
+        written += len;
+    }
 
-        Serial.printf("Free sketch space: %d bytes\n", ESP.getFreeSketchSpace());
-
-        if (!Update.begin(UPDATE_SIZE_UNKNOWN, U_FLASH)) {
-            Serial.println("Cannot do the update");
-            return;
-        }
-
-        size_t written = 0;
-        while (client.connected()) {
-            if (client.available()) {
-                size_t bytesRead = client.readBytes(buffer, bufferSize);
-
-                size_t writtenNow = 0;
-                size_t retries = 0;
-                const size_t maxRetries = 3;
-
-                while (retries < maxRetries && writtenNow != bytesRead) {
-                    writtenNow = Update.write(buffer, bytesRead);
-                    if (writtenNow != bytesRead) {
-                        retries++;
-                        Serial.printf("Retrying flash write (%d/%d)...\n", retries, maxRetries);
-                    }
-                }
-
-                if (writtenNow != bytesRead) {
-                    Serial.printf("Failed to write to flash after %d retries: only %d/%d bytes written\n", retries, writtenNow, bytesRead);
-                    return;
-                }
-
-                written += writtenNow;
-
-                Serial.printf("Written %d bytes; Total written: %d bytes\n", writtenNow, written);
-
-                esp_task_wdt_reset();
-            } else {
-                vTaskDelay(1);
-                esp_task_wdt_reset();
-            }
-        }
-
-        Serial.printf("Total written: %d bytes\n", written);
-
-        if (Update.end()) {
-            Serial.println("Successful update");
-            Serial.println("Resetting in 4 seconds...");
-            delay(4000);
+    if (Update.end()) {
+        if (Update.isFinished()) {
+            Serial.printf("OTA Update via URL completed. Written: %u bytes.\n", written);
             ESP.restart();
         } else {
-            int error = Update.getError();
-            Serial.printf("Error Occurred during Update.end(): %d\n", error);
-
-            switch (error) {
-                case UPDATE_ERROR_WRITE:
-                    Serial.println("Write error occurred during the update.");
-                    break;
-                case UPDATE_ERROR_ERASE:
-                    Serial.println("Erase error occurred during the update.");
-                    break;
-                case UPDATE_ERROR_READ:
-                    Serial.println("Read error occurred during the update.");
-                    break;
-                case UPDATE_ERROR_SPACE:
-                    Serial.println("Not enough space to store the firmware.");
-                    break;
-                case UPDATE_ERROR_SIZE:
-                    Serial.println("Firmware size mismatch.");
-                    break;
-                case UPDATE_ERROR_STREAM:
-                    Serial.println("Stream read error during the update.");
-                    break;
-                case UPDATE_ERROR_MAGIC_BYTE:
-                    Serial.println("Invalid magic byte in the firmware.");
-                    break;
-                case UPDATE_ERROR_MD5:
-                    Serial.println("MD5 checksum failed.");
-                    break;
-                default:
-                    Serial.println("Unknown error occurred.");
-                    break;
-            }
+            Serial.println("Update did not finish.");
         }
-        client.stop();
     } else {
-        Serial.println("Failed to connect to server");
+        Serial.println("Error Occurred: ");
+        Update.printError(Serial);
     }
+}
 
-    if (esp_task_wdt_status(NULL) == ESP_ERR_NOT_FOUND) {
-        wdt_config.timeout_ms = 5000;
-        esp_task_wdt_init(&wdt_config);
+void ESPWebConnect::handleUpdateError(int error) {
+    Serial.printf("Error Occurred during Update.end(): %d\n", error);
+    switch (error) {
+        case UPDATE_ERROR_WRITE:
+            Serial.println("Write error occurred during the update.");
+            break;
+        case UPDATE_ERROR_ERASE:
+            Serial.println("Erase error occurred during the update.");
+            break;
+        case UPDATE_ERROR_READ:
+            Serial.println("Read error occurred during the update.");
+            break;
+        case UPDATE_ERROR_SPACE:
+            Serial.println("Not enough space to store the firmware.");
+            break;
+        case UPDATE_ERROR_SIZE:
+            Serial.println("Firmware size mismatch.");
+            break;
+        case UPDATE_ERROR_STREAM:
+            Serial.println("Stream read error during the update.");
+            break;
+        case UPDATE_ERROR_MAGIC_BYTE:
+            Serial.println("Invalid magic byte in the firmware.");
+            break;
+        case UPDATE_ERROR_MD5:
+            Serial.println("MD5 checksum failed.");
+            break;
+        default:
+            Serial.println("Unknown error occurred.");
+            break;
     }
 }
 
@@ -905,7 +890,7 @@ String ESPWebConnect::generateDashboardHTML() {
     
     html += "</div>";
     html += "<footer><button onclick=\"window.location.href='/espwebc'\">Go to ESP Web Config</button>";
-    html += "<a href=\"danielamani.com\" style=\"color: white;\">Code by: DanielAmani.com</a><br></footer>";
+    html += "</br><a href=\"https://danielamani.com\" target=\"_blank\" style=\"color: white;\">Code by: DanielAmani.com</a><br></footer></br>";
 
     // Add JavaScript functions for toggling switches and pressing buttons (unchanged)
     html += "<script>function toggleSwitch(id) {";
@@ -1175,6 +1160,28 @@ void ESPWebConnect::saveWifiSettings(const WifiSettings& settings) {
     serializeJson(doc, file);
     file.close();
 }
+
+void ESPWebConnect::saveLORASettings(const LORASettings& settings) {
+    StaticJsonDocument<215> doc;
+    doc["LORA_Key"] = settings.LORA_Key;
+    doc["LORA_CRC"] = settings.LORA_CRC;
+    doc["LORA_RSSI"] = settings.LORA_RSSI;
+    doc["LORA_PacketHZErr"] = settings.LORA_PacketHZErr;
+    doc["LORA_Spread"] = settings.LORA_Spread;
+    doc["LORA_Coding"] = settings.LORA_Coding;
+    doc["LORA_TxPwr"] = settings.LORA_TxPwr;
+    doc["LORA_Reg"] = settings.LORA_Reg;
+
+    File file = LittleFS.open("/settings-lora.json", "w");
+    if (!file) {
+        Serial.println("Failed to open LoRa settings file for writing");
+        return;
+    }
+
+    serializeJson(doc, file);
+    file.close();
+}
+
 
 #ifdef ENABLE_MQTT
 

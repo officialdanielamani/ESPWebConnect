@@ -1,0 +1,11 @@
+{
+    "LORA_Key": 34,
+    "LORA_CRC": true,
+    "LORA_RSSI": -80,
+    "LORA_PacketHZErr": 1000,
+    "LORA_Spread": 7,
+    "LORA_Coding": 5,
+    "LORA_TxPwr": 14,
+    "LORA_Reg": "868E6"
+  }
+  

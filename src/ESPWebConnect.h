@@ -35,6 +35,7 @@ public:
     } wifiSettings;
 
     const WifiSettings &getWifiSettings() const;
+
     void setIconUrl(const String &url);
     void setCSS(const String &url);
     void setAutoUpdate(unsigned long interval);
@@ -85,10 +86,26 @@ public:
     void saveWifiSettings(const WifiSettings &settings);
     double convDec(double value, int decimal_point = 2);
 
-    void performOTAUpdateFromURL(const String &firmwareURL);
+    void performOTAUpdateFromURL(const String& firmwareURL);
+    void handleUpdateError(int error);
 
     void setVersion(const String &sysversion);
     void setDeviceInfo(const String &sysinfo);
+
+    struct LORASettings
+    {
+        String LORA_Key;           // Value between 0 and 0xFF
+        bool LORA_CRC;              // Checkbox, true if checked
+        int LORA_RSSI;              // Display only, can be an integer
+        long LORA_PacketHZErr;       // Display only, can be an integer
+        uint8_t LORA_Spread;        // Dropdown, values between 6 and 12
+        uint8_t LORA_Coding;        // Dropdown, values between 5 and 8
+        uint8_t LORA_TxPwr;         // Dropdown, values between 2 and 17
+        String LORA_Reg;            // Dropdown, frequency bands like "433E6", "868E6", "915E6"
+    } loraSettings;
+    const LORASettings &getLORASettings() const;
+
+    void saveLORASettings(const LORASettings &settings);
 
 private:
     WiFiClient wifiClient;
@@ -105,55 +122,55 @@ private:
     WebSettings webSettings;
     bool isAPMode() const;
 
-struct DashboardElement {
-    enum Type { SENSOR_INT, SENSOR_FLOAT, SENSOR_STRING, SWITCH, BUTTON, INPUT_NUM, INPUT_TEXT } type;
-    const char* id;
-    const char* name;
-    const char* unit;
-    const char* icon;
-    const char* color;
-    union {
-        int* intValue;
-        float* floatValue;
-        String* stringValue;  // Changed back to String* for mutable string handling
-        bool* state;
+    struct DashboardElement {
+        enum Type { SENSOR_INT, SENSOR_FLOAT, SENSOR_STRING, SWITCH, BUTTON, INPUT_NUM, INPUT_TEXT } type;
+        const char* id;
+        const char* name;
+        const char* unit;
+        const char* icon;
+        const char* color;
+        union {
+            int* intValue;
+            float* floatValue;
+            String* stringValue;  // Changed back to String* for mutable string handling
+            bool* state;
+        };
+        std::function<void()> onPress;
+        float sizeMultiplierX; // Multiplier for width
+        float sizeMultiplierY; // Multiplier for height
+
+        // Constructor for int sensor
+        DashboardElement(const char* id, const char* name, const char* unit, const char* icon, int* intValue)
+            : type(SENSOR_INT), id(id), name(name), unit(unit), icon(icon), color(nullptr), intValue(intValue), sizeMultiplierX(1.0), sizeMultiplierY(1.0) {}
+
+        // Constructor for float sensor
+        DashboardElement(const char* id, const char* name, const char* unit, const char* icon, float* floatValue)
+            : type(SENSOR_FLOAT), id(id), name(name), unit(unit), icon(icon), color(nullptr), floatValue(floatValue), sizeMultiplierX(1.0), sizeMultiplierY(1.0) {}
+
+        // Constructor for string sensor
+        DashboardElement(const char* id, const char* name, const char* unit, const char* icon, String* stringValue)
+            : type(SENSOR_STRING), id(id), name(name), unit(unit), icon(icon), color(nullptr), stringValue(stringValue), sizeMultiplierX(1.0), sizeMultiplierY(1.0) {}
+
+        // Constructor for switches
+        DashboardElement(const char* id, const char* name, const char* icon, bool* state)
+            : type(SWITCH), id(id), name(name), unit(""), icon(icon), color(nullptr), state(state), sizeMultiplierX(1.0), sizeMultiplierY(1.0) {}
+
+        // Constructor for buttons
+        DashboardElement(const char* id, const char* name, const char* icon, std::function<void()> onPress)
+            : type(BUTTON), id(id), name(name), unit(""), icon(icon), color(nullptr), onPress(onPress), sizeMultiplierX(1.0), sizeMultiplierY(1.0) {}
+
+        // Constructor for integer input
+        DashboardElement(const char* id, const char* name, const char* icon, int* intValue)
+            : type(INPUT_NUM), id(id), name(name), unit(""), icon(icon), color(nullptr), intValue(intValue), sizeMultiplierX(1.0), sizeMultiplierY(1.0) {}
+
+        // Constructor for float input
+        DashboardElement(const char* id, const char* name, const char* icon, float* floatValue)
+            : type(INPUT_NUM), id(id), name(name), unit(""), icon(icon), color(nullptr), floatValue(floatValue), sizeMultiplierX(1.0), sizeMultiplierY(1.0) {}
+
+        // Constructor for text input
+        DashboardElement(const char* id, const char* name, const char* icon, String* stringValue)
+            : type(INPUT_TEXT), id(id), name(name), unit(""), icon(icon), color(nullptr), stringValue(stringValue), sizeMultiplierX(1.0), sizeMultiplierY(1.0) {}
     };
-    std::function<void()> onPress;
-    float sizeMultiplierX; // Multiplier for width
-    float sizeMultiplierY; // Multiplier for height
-
-    // Constructor for int sensor
-    DashboardElement(const char* id, const char* name, const char* unit, const char* icon, int* intValue)
-        : type(SENSOR_INT), id(id), name(name), unit(unit), icon(icon), color(nullptr), intValue(intValue), sizeMultiplierX(1.0), sizeMultiplierY(1.0) {}
-
-    // Constructor for float sensor
-    DashboardElement(const char* id, const char* name, const char* unit, const char* icon, float* floatValue)
-        : type(SENSOR_FLOAT), id(id), name(name), unit(unit), icon(icon), color(nullptr), floatValue(floatValue), sizeMultiplierX(1.0), sizeMultiplierY(1.0) {}
-
-    // Constructor for string sensor
-    DashboardElement(const char* id, const char* name, const char* unit, const char* icon, String* stringValue)
-        : type(SENSOR_STRING), id(id), name(name), unit(unit), icon(icon), color(nullptr), stringValue(stringValue), sizeMultiplierX(1.0), sizeMultiplierY(1.0) {}
-
-    // Constructor for switches
-    DashboardElement(const char* id, const char* name, const char* icon, bool* state)
-        : type(SWITCH), id(id), name(name), unit(""), icon(icon), color(nullptr), state(state), sizeMultiplierX(1.0), sizeMultiplierY(1.0) {}
-
-    // Constructor for buttons
-    DashboardElement(const char* id, const char* name, const char* icon, std::function<void()> onPress)
-        : type(BUTTON), id(id), name(name), unit(""), icon(icon), color(nullptr), onPress(onPress), sizeMultiplierX(1.0), sizeMultiplierY(1.0) {}
-
-    // Constructor for integer input
-    DashboardElement(const char* id, const char* name, const char* icon, int* intValue)
-        : type(INPUT_NUM), id(id), name(name), unit(""), icon(icon), color(nullptr), intValue(intValue), sizeMultiplierX(1.0), sizeMultiplierY(1.0) {}
-
-    // Constructor for float input
-    DashboardElement(const char* id, const char* name, const char* icon, float* floatValue)
-        : type(INPUT_NUM), id(id), name(name), unit(""), icon(icon), color(nullptr), floatValue(floatValue), sizeMultiplierX(1.0), sizeMultiplierY(1.0) {}
-
-    // Constructor for text input
-    DashboardElement(const char* id, const char* name, const char* icon, String* stringValue)
-        : type(INPUT_TEXT), id(id), name(name), unit(""), icon(icon), color(nullptr), stringValue(stringValue), sizeMultiplierX(1.0), sizeMultiplierY(1.0) {}
-};
     std::vector<DashboardElement> dashboardElements;
 
     int baseWidth = 200;  // Default base width in pixels
@@ -171,8 +188,9 @@ struct DashboardElement {
 
     void handleToggleSwitch(AsyncWebServerRequest *request);
     void handleNotification(AsyncWebServerRequest *request);
-    void handleGetWifiSettings(AsyncWebServerRequest *request);
-    void handleGetWebSettings(AsyncWebServerRequest *request);
+    //void handleGetWifiSettings(AsyncWebServerRequest *request);
+    //void handleGetLORASettings(AsyncWebServerRequest *request);
+    //void handleGetWebSettings(AsyncWebServerRequest *request);
     void handleFirmwareUpload(AsyncWebServerRequest *request);
 
     void onWebSocketEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type, void *arg, uint8_t *data, size_t len);
