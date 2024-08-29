@@ -1,24 +1,24 @@
 :root {
     /* Global color settings */
-    --background-color: #f5f5f5; /* Light gray for body background */
-    --text-color: #333333; /* Dark gray for main text */
-    --header-text-color: #111111; /* Almost black for headers */
-    --input-border-color: #cccccc; /* Light gray for input borders */
-    --input-background-color: #ffffff; /* White for input backgrounds */
-    --button-text-color: #ffffff; /* White for button text */
-    --button-background-color: #007bff; /* Medium blue for button background */
-    --button-hover-color: #0056b3; /* Darker blue for button hover */
-    --toggle-on-background-color: #4caf50; /* Green for toggle background when checked */
-    --toggle-on-color: #ffffff; /* White for toggle knob when on */
-    --toggle-off-background-color: #e0e0e0; /* Light gray for toggle background when unchecked */
-    --toggle-off-color: #333333; /* Dark gray for toggle knob when off */
-    --table-border-color: #dddddd; /* Light gray for table borders */
-    --table-header-color: #f0f0f0; /* Very light gray for table headers */
-    --card-background-color: #ffffff; /* White for card background */
-    --icon-color: #007bff; /* Medium blue for icons */
-    --notification-background-color: #cccccc; /* Bit Gray for notifications */
-    --notification-icon-color: #333333; /* Dark gray for notification icons */
-    --close-button-color: #f44336; /* Red for close button */
+    --background-color: #1a1a1a; /* Main background color */
+    --text-color: #e0e0e0; /* General text color */
+    --header-text-color: #ffffff; /* Header text color */
+    --input-border-color: #555; /* Input border color */
+    --input-background-color: #1a1a1a; /* Input background color */
+    --button-text-color: #ffffff; /* Button text color */
+    --button-background-color: #008CBA; /* Button background color */
+    --button-hover-color: #007B9A; /* Button hover color */
+    --toggle-on-background-color: #2196F3; /* Toggle background color when checked */
+    --toggle-on-color: #ffffff; /* Toggle knob color when on */
+    --toggle-off-background-color: #ccc; /* Toggle background color when unchecked */
+    --toggle-off-color: #ffffff; /* Toggle knob color when off */
+    --table-border-color: #ddd; /* Table border color */
+    --table-header-color: #f2f2f2; /* Table header background color */
+    --card-background-color: #333; /* Card background color */
+    --icon-color: #008CBA; /* Icon color */
+    --notification-background-color: #333; /* Notification background color */
+    --notification-icon-color: #008CBA; /* Notification icon color */
+    --close-button-color: #ff0000; /* Close button color */
 }
 
 body {
@@ -285,7 +285,7 @@ input.large-checkbox {
 .notification-message {
     flex-grow: 1;
     font-size: 1.375em;
-    max-width: 90%;
+    max-width: 80%;
     display: flex;
     align-items: center;
     justify-content: center;
