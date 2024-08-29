@@ -122,6 +122,8 @@ Optional: Set Dashbaord Card size
 `webConnect.setAllCardSize(180, 180); `
 Default value is 200 if not set (Unit: pixel).
 
+For detail about colour theme go to : [Theme documentation](https://github.com/officialdanielamani/ESPWebConnect/tree/main/css "Theme documentation")
+
 ### Adding Sensors
 
 This function will take reading and show it on the dashboard. It takes 5 arguments:
@@ -427,6 +429,7 @@ float updateCount() {
 ## To-Do
 - [ ] New Protocol such as Matter, Lo-Ra and ESP-Now
 - [x] Change addSensor to accept Float, Int, String
+- [ ] Connection with Home Assistance
 - [x] addSensor no need callback functions
 - [x] Custom Card size
 - [ ] Custom Icon size
