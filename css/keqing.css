@@ -1,31 +1,50 @@
+:root {
+    /* Global color settings */
+    --background-color: #2b1e44; /* Dark purple, reflecting Keqing's main outfit */
+    --text-color: #e0e0e0; /* Light gray for general content */
+    --header-text-color: #ffffff; /* White for headers to stand out */
+    --input-border-color: #907aad; /* Soft lavender for input borders */
+    --input-background-color: #3a2e54; /* Deep purple for input backgrounds */
+    --button-text-color: #ffffff; /* White for button text */
+    --button-background-color: #a48ad1; /* Light lavender for buttons, similar to her accents */
+    --button-hover-color: #8e75bf; /* Slightly darker lavender for button hover */
+    --toggle-on-background-color: #d5c6f1; /* Light lilac purple for toggle background when checked */
+    --toggle-on-color: #ffffff; /* White for toggle knob when on */
+    --toggle-off-background-color: #5a4e76; /* Muted purple for toggle background when unchecked */
+    --toggle-off-color: #ffffff; /* White for toggle knob when off */
+    --table-border-color: #7b659c; /* Medium lavender for table borders */
+    --table-header-color: #4b3b64; /* Darker purple for table headers */
+    --card-background-color: #3a2e54; /* Deep purple for card background */
+    --icon-color: #a48ad1; /* Light lavender for icons */
+    --notification-background-color: #4b3b64; /* Dark purple for notification backgrounds */
+    --notification-icon-color: #a48ad1; /* Light lavender for notification icons */
+    --close-button-color: #ff6b6b; /* Soft red-pink for close button, contrasting with purple tones */
+}
+
 body {
     font-family: Arial, sans-serif;
-    background-color: #2e1a47;
-    color: #e0e0e0;
+    background-color: var(--background-color);
+    color: var(--text-color);
     margin: 0;
     padding: 0;
     text-align: center;
     font-size: 16px;
 }
 
-h3,
-p {
-    color: #fff;
+h3, p {
+    color: var(--header-text-color);
     font-size: 1.25em;
 }
 
 form {
-    width: 70%;
     margin: 20px auto 0;
     text-align: left;
     font-size: 1em;
+    width: 70%;
 }
 
-input,
-select,
-button {
+input, select, button {
     display: block;
-    width: 100%;
     margin: 10px 0;
     padding: 15px;
     border-radius: 4px;
@@ -33,26 +52,25 @@ button {
     font-size: 1em;
 }
 
-input,
-select {
-    border: 1px solid #665d91;
-    background-color: #3e2d5c;
-    color: #ddd;
+input, select {
+    width: 100%;
+    border: 1px solid var(--input-border-color);
+    background-color: var(--input-background-color);
+    color: var(--text-color);
 }
 
 button {
-    display: block;
-    width: 80%;
     margin: 10px auto;
     border: none;
-    background-color: #7a4fc9;
-    color: white;
+    background-color: var(--button-background-color);
+    color: var(--button-text-color);
     cursor: pointer;
     font-size: 1em;
+    width: 75%;
 }
 
 button:hover {
-    background-color: #6b3eb1;
+    background-color: var(--button-hover-color);
 }
 
 .switch {
@@ -75,8 +93,7 @@ button:hover {
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: #8a71b7;
-    -webkit-transition: .4s;
+    background-color: var(--toggle-off-background-color);
     transition: .4s;
 }
 
@@ -87,20 +104,26 @@ button:hover {
     width: 26px;
     left: 4px;
     bottom: 4px;
-    background-color: white;
-    -webkit-transition: .4s;
+    background-color: var(--toggle-off-color);
     transition: .4s;
 }
 
-input:checked+.slider_sw:before {
-    background-color: #7a4fc9;
-    -webkit-transform: translateX(26px);
-    -ms-transform: translateX(26px);
+input:checked + .slider_sw {
+    background-color: var(--toggle-on-background-color);
+}
+
+input:checked + .slider_sw:before {
+    background-color: var(--toggle-on-color);
     transform: translateX(26px);
 }
 
-input:focus+.slider_sw {
-    box-shadow: 0 0 1px #7a4fc9;
+input:focus + .slider_sw {
+    box-shadow: 0 0 1px var(--button-background-color);
+}
+
+input.large-checkbox {
+    width: 48px;
+    height: 48px;
 }
 
 .table-wrapper {
@@ -116,14 +139,13 @@ input:focus+.slider_sw {
     font-size: 1em;
 }
 
-.table th,
-.table td {
+.table th, .table td {
     padding: 8px;
-    border-bottom: 1px solid #5d4a7b;
+    border-bottom: 1px solid var(--table-border-color);
 }
 
 .table th {
-    background-color: #4a3569;
+    background-color: var(--table-header-color);
     font-size: 1em;
 }
 
@@ -137,19 +159,48 @@ input:focus+.slider_sw {
     display: flex;
     justify-content: center;
     align-items: flex-start;
-    padding: 20px;
+    padding: 5px;
 }
 
+.center-container > .card {
+    width: 80%;
+}
+
+.collapsible {
+    cursor: pointer;
+}
+
+.card-content {
+    display: none;
+    margin-top: 10px;
+    box-sizing: border-box;
+    width: 100%;
+}
+
+.collapsible.expanded .card-content {
+    display: block;
+}
+
+.collapsible.expanded .card-content form {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* Card Class */
 .card {
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    background-color: #3e2d5c;
-    border-radius: 4px;
+    background-color: var(--card-background-color);
     box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
-    margin: 20px;
-    padding: 20px;
+    margin: 15px;
+    padding: 15px;
     text-align: center;
     font-size: 1.2em;
     font-weight: bold;
@@ -158,12 +209,12 @@ input:focus+.slider_sw {
 .card .icon {
     font-size: 4em;
     margin-bottom: 10px;
-    color: #D3D876;
+    color: var(--icon-color);
 }
 
 .card .input-label {
     margin-bottom: 10px;
-    color: #e0e0e0;
+    color: var(--text-color);
 }
 
 .card form {
@@ -176,7 +227,7 @@ input:focus+.slider_sw {
 
 .card label {
     margin-bottom: 5px;
-    color: #e0e0e0;
+    color: var(--text-color);
     font-size: 1.1em;
 }
 
@@ -187,9 +238,9 @@ input:focus+.slider_sw {
     margin-right: 10px;
     padding: 10px;
     border-radius: 4px;
-    border: 1px solid #665d91;
-    background-color: #3e2d5c;
-    color: #ddd;
+    border: 1px solid var(--input-border-color);
+    background-color: var(--input-background-color); 
+    color: var(--text-color);
     font-size: 1.2em;
     text-align: center;
 }
@@ -197,71 +248,25 @@ input:focus+.slider_sw {
 .card button[type="submit"] {
     padding: 10px 20px;
     border-radius: 4px;
-    background-color: #7a4fc9;
-    color: white;
+    background-color: var(--button-background-color); 
+    color: var(--button-text-color);
     font-size: 1.2em;
     cursor: pointer;
     width: auto;
 }
 
 .card button[type="submit"]:hover {
-    background-color: #6b3eb1;
+    background-color: var(--button-hover-color);
 }
 
-.center-container .card form {
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-start;
-    align-items: flex-start;
-    width: 100%;
-}
-
-.center-container .card label {
-    margin-bottom: 5px;
-    color: #e0e0e0;
-    font-size: 1.1em;
-}
-
-.center-container .card input[type="text"],
-.center-container .card input[type="password"],
-.center-container .card input[type="number"] {
-    width: 100%;
-    margin-bottom: 15px;
-    padding: 10px;
-    border-radius: 4px;
-    border: 1px solid #665d91;
-    background-color: #3e2d5c;
-    color: #ddd;
-    font-size: 1.2em;
-    text-align: center;
-}
-
-.center-container .card button[type="submit"] {
-    padding: 10px 20px;
-    border-radius: 4px;
-    background-color: #7a4fc9;
-    color: white;
-    font-size: 1.2em;
-    cursor: pointer;
-    align-self: center;
-    margin-top: 15px;
-}
-
-.center-container .card button[type="submit"]:hover {
-    background-color: #6b3eb1;
-}
-
-.container {
-    padding: 10px;
-}
-
+/* Notification Banner */
 .notification-banner {
     display: none;
     position: fixed;
     top: 0;
     width: 100%;
-    background-color: #4a3569;
-    color: #e0e0e0;
+    background-color: var(--notification-background-color);
+    color: var(--text-color);
     padding: 20px;
     z-index: 1000;
     display: flex;
@@ -274,7 +279,7 @@ input:focus+.slider_sw {
 
 .notification-icon {
     margin-right: 15px;
-    color: #7a4fc9; 
+    color: var(--notification-icon-color);
 }
 
 .notification-message {
@@ -287,10 +292,10 @@ input:focus+.slider_sw {
 }
 
 .close-button {
-    background: #e60073; 
+    background: var(--close-button-color);
     width: 50px;
     border: none;
-    color: white;
+    color: var(--button-text-color); 
     font-size: 1.25em;
     cursor: pointer;
     padding: 10px;
