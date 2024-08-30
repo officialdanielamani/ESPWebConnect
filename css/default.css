@@ -19,7 +19,27 @@
     --notification-background-color: #333; /* Notification background color */
     --notification-icon-color: #008CBA; /* Notification icon color */
     --close-button-color: #ff0000; /* Close button color */
+    --slider-rail-color: #1a1a1a; /* Slider rail color */
+    --slider-thumb-color: #008CBA; /* Slider thumb color */
+    --slider-thumb-border-color: #008CBA; /* Slider thumb border color */
+
+    /* Font Size Variables */
+    --base-font-size: 16px; /* Base font size for body */
+    --h1-font-size: 2em;
+    --h2-font-size: 1.75em;
+    --h3-font-size: 1.25em;
+    --p-font-size: 1em;
+    --form-font-size: 1em;
+    --input-font-size: 1em;
+    --button-font-size: 1.25em;
+    --button-card-font-size: 1.2em;
+    --card-font-size: 1.2em;
+    --table-font-size: 1em;
+    --notification-font-size: 1em;
+    --notification-message-font-size: 1.375em;
+    --close-button-font-size: 1.25em;
 }
+
 
 body {
     font-family: Arial, sans-serif;
@@ -28,18 +48,34 @@ body {
     margin: 0;
     padding: 0;
     text-align: center;
-    font-size: 16px;
+    font-size: var(--base-font-size);
 }
 
-h3, p {
-    color: var(--header-text-color);
-    font-size: 1.25em;
+h1, h2, h3 {
+    color: var(--header-text-color); /* Common color for all headers */
+}
+
+h1 {
+    font-size: var(--h1-font-size);
+}
+
+h2 {
+    font-size: var(--h2-font-size);
+}
+
+h3 {
+    font-size: var(--h3-font-size);
+}
+
+p {
+    font-size: var(--p-font-size);
+    color: var(paragraph-text-color);
 }
 
 form {
-    margin: 20px auto 0;
+    margin: 10px auto 0;
     text-align: left;
-    font-size: 1em;
+    font-size: var(--form-font-size);
     width: 70%;
 }
 
@@ -49,7 +85,7 @@ input, select, button {
     padding: 15px;
     border-radius: 4px;
     box-sizing: border-box;
-    font-size: 1em;
+    font-size: var(--input-font-size);
 }
 
 input, select {
@@ -65,7 +101,7 @@ button {
     background-color: var(--button-background-color);
     color: var(--button-text-color);
     cursor: pointer;
-    font-size: 1em;
+    font-size: var(--button-font-size);
     width: 75%;
 }
 
@@ -84,6 +120,117 @@ button:hover {
     opacity: 0;
     width: 0;
     height: 0;
+}
+ 
+/* Slider Container */
+.slider-container {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0; /* Remove padding from the container */
+}
+
+/* Card Class for Slider */
+.card.slider-card {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background-color: var(--card-background-color);
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+    margin: 15px;
+    padding: 15px;
+    text-align: center;
+    font-size: var(--card-font-size);
+    font-weight: bold;
+}
+
+/* Centered Icon and Title */
+.card.slider-card .icon {
+    font-size: 3.5em;
+    margin-bottom: 10px;
+    color: var(--icon-color);
+}
+
+.card.slider-card .sensor-name {
+    margin-bottom: 10px;
+    color: var(--text-color);
+    font-size: var(--card-font-size);
+}
+
+/* Horizontal Slider (Default) */
+.horizontal-slider {
+    width: 95%; /* Adjust width for the horizontal slider */
+    margin: 10px auto 0; 
+    padding: 0; /* Remove padding */
+    -webkit-appearance: none; /* Remove default styling for Webkit browsers */
+    appearance: none; /* Remove default styling */
+    box-sizing: border-box;
+    height: 6px; /* Track height */
+}
+
+/* Vertical Slider */
+.vertical-slider {
+    width: 6px; /* Width for vertical slider track */
+    height: max-content; /* Height of the slider track */
+    margin: 5px; /* Remove margin */
+    padding: 0; /* Remove padding */
+    -webkit-appearance: none;
+    appearance: none;
+    box-sizing: border-box;
+}
+
+.vertical-slider input[type="range"] {
+    -webkit-transform:rotate(270deg);
+    -moz-transform:rotate(270deg);
+      -o-transform:rotate(270deg);
+         transform:rotate(270deg);
+
+}
+
+/* Custom Slider Handle (Thumb) for Webkit Browsers (Chrome, Safari) */
+.horizontal-slider::-webkit-slider-thumb,
+.vertical-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 10px; /* Width of the slider thumb */
+    height: 25px; /* Height of the slider thumb */
+    background-color: var(--slider-thumb-color); /* Custom color for thumb */
+    border-radius: 4px; /* Rounded corners for the thumb, set to 0 for perfect rectangle */
+    border: 2px solid var(--slider-thumb-border-color); /* Optional border around thumb */
+    cursor: pointer; /* Change cursor to pointer on hover */
+    margin-top: -10px; /* Center thumb vertically on track */
+    position: relative; /* Position relative for centering */
+}
+
+/* Custom Slider Handle (Thumb) for Firefox */
+.horizontal-slider::-moz-range-thumb,
+.vertical-slider::-moz-range-thumb {
+    width: 10px; /* Width of the slider thumb */
+    height: 25px; /* Height of the slider thumb */
+    background-color: var(--slider-thumb-color); /* Custom color for thumb */
+    border-radius: 4px; /* Rounded corners for the thumb, set to 0 for perfect rectangle */
+    border: 2px solid var(--slider-thumb-border-color); /* Optional border around thumb */
+    cursor: pointer; /* Change cursor to pointer on hover */
+    margin-top: -10px; /* Center thumb vertically on track */
+    position: relative; /* Position relative for centering */
+}
+
+/* Slider Track for Webkit Browsers */
+.horizontal-slider::-webkit-slider-runnable-track,
+.vertical-slider::-webkit-slider-runnable-track {
+    background: var(--slider-rail-color); /* Track color */
+    height: 6px; /* Track height */
+    border-radius: 4px; /* Rounded track */
+}
+
+/* Slider Track for Firefox */
+.horizontal-slider::-moz-range-track,
+.vertical-slider::-moz-range-track {
+    background: var(--slider-rail-color); /* Track color */
+    height: 6px; /* Track height */
+    border-radius: 4px; /* Rounded track */
 }
 
 .slider_sw {
@@ -136,7 +283,7 @@ input.large-checkbox {
     text-align: left;
     border-collapse: collapse;
     width: 100%;
-    font-size: 1em;
+    font-size: var(--table-font-size);
 }
 
 .table th, .table td {
@@ -146,7 +293,7 @@ input.large-checkbox {
 
 .table th {
     background-color: var(--table-header-color);
-    font-size: 1em;
+    font-size: var(--table-font-size);
 }
 
 .dashboard {
@@ -202,12 +349,12 @@ input.large-checkbox {
     margin: 15px;
     padding: 15px;
     text-align: center;
-    font-size: 1.2em;
+    font-size: var(--card-font-size);
     font-weight: bold;
 }
 
 .card .icon {
-    font-size: 4em;
+    font-size: 3.5em;
     margin-bottom: 10px;
     color: var(--icon-color);
 }
@@ -228,7 +375,7 @@ input.large-checkbox {
 .card label {
     margin-bottom: 5px;
     color: var(--text-color);
-    font-size: 1.1em;
+    font-size: var(--form-font-size);
 }
 
 .card input[type="text"],
@@ -241,7 +388,7 @@ input.large-checkbox {
     border: 1px solid var(--input-border-color);
     background-color: var(--input-background-color); 
     color: var(--text-color);
-    font-size: 1.2em;
+    font-size: var(--input-font-size);
     text-align: center;
 }
 
@@ -250,7 +397,7 @@ input.large-checkbox {
     border-radius: 4px;
     background-color: var(--button-background-color); 
     color: var(--button-text-color);
-    font-size: 1.2em;
+    font-size: var(--button-card-font-size);
     cursor: pointer;
     width: auto;
 }
@@ -274,7 +421,7 @@ input.large-checkbox {
     justify-content: center;
     border-radius: 4px;
     box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
-    font-size: 1em;
+    font-size: var(--notification-font-size);
 }
 
 .notification-icon {
@@ -284,7 +431,7 @@ input.large-checkbox {
 
 .notification-message {
     flex-grow: 1;
-    font-size: 1.375em;
+    font-size: var(--notification-message-font-size);
     max-width: 80%;
     display: flex;
     align-items: center;
@@ -296,7 +443,7 @@ input.large-checkbox {
     width: 50px;
     border: none;
     color: var(--button-text-color); 
-    font-size: 1.25em;
+    font-size: var(--close-button-font-size);
     cursor: pointer;
     padding: 10px;
     border-radius: 4px;
