@@ -27,6 +27,37 @@ This library is in **BETA** development and for internal usage of ProjectEDNA. D
 
 ------------
 
+## To-Do
+- [ ] New Protocol such as Matter, Lo-Ra and ESP-Now
+- [x] Change addSensor to accept Float, Int, String
+- [ ] Connection with Home Assistance
+- [ ] Stable MQTT intergation
+- [ ] Telegram intergation
+- [x] addSensor no need callback functions
+- [x] Custom Card size
+- [ ] Custom Icon size
+- [ ] More CSS option
+- [ ] Upload own CSS from web interface
+- [ ] Adding Slider
+- [ ] Adding Joystick
+- [x] Adding input Number and Text
+- [ ] Adding regex option on input
+- [ ] More option for input 
+- [ ] Adding bar graph
+- [ ] Adding line graph
+- [x] OTA from .bin
+- [x] OTA from URL
+- [ ] OTA URL support MD5 hash integrity
+- [ ] Upload custom CSS on web interface
+- [ ] Device/firmware info and debug
+- [ ] Adding firmware info field and JSON on SPIFF
+- [ ] Spilit the codebase to smaller chunk so can use ala-carte
+- [ ] Better memory management
+- [x] Change `String` to `const char*` for better memory management on Dashboard
+- [ ] Better documentation
+- [ ] More `#Define` option for reduce compilation size 
+
+------------
 
 ## Installation
 
@@ -98,37 +129,38 @@ By default Dashboard is on `http://your-esp-ip/dashboard`
 
 ### Dashboard Configuration
 
-Optional: Set Dashboard Path
+- Optional: Set Dashboard Path
 `webConnect.setDashPath("/dashboard");`
 Default value if not set is `/dashboard`
 
-Optional: Set Title
+- Optional: Set Title
 `webConnect.setTitle("My IoT Dashboard");`
 Default value if not set is `Dashboard Interface`
 
-Optional: Set Description
+- Optional: Set Description
 `webConnect.setDesc("Control my Smart home here");`
 Default value if not set is `Example interface using the ESPWebConnect library`
 
-Optional: Set Icon URL
+- Optional: Set Icon URL
 `webConnect.setIconUrl("https://your-icon-css");`
 Default value using Fontawesome icons repo.
 
-Optional: Set Website fetch data interval
+- Optional: Set Website fetch data interval
 `webConnect.setAutoUpdate(2500);`
 Default value is 1000 millis if not set.
 
-Optional: Set Dashbaord Card size
+- Optional: Set Dashbaord Card size
 `webConnect.setAllCardSize(180, 180); `
 Default value is 200 if not set (Unit: pixel).
 
 For detail about colour theme go to : [Theme documentation](https://github.com/officialdanielamani/ESPWebConnect/tree/main/css "Theme documentation")
 
-### Adding Sensors
+### Adding Sensors/Reading/Display
 
 This function will take reading and show it on the dashboard. It takes 5 arguments:
 ```cpp
-webConnect.addSensor("ID", "Text-to-display", "Unit", "Icon", variable);
+webConnect.addSensor(const char *id, const char *name, const char *unit, const char *icon, [*variable];
+
 ```
 
 *Variable can be in float, int or String*
@@ -146,12 +178,14 @@ webConnect.addSensor("tempDHT11", "Temperature", "°C", "fa fa-thermometer-half"
 
 The value will be update after set data interval.
 
+
 ### Adding Switches
 
 You can add switches to control digital outputs (e.g., relays). The `addSwitch` method takes 4 arguments:
 ```cpp
-webConnect.addSwitch("ID", "Text-to-display", "Icon", &variable);
+webConnect.addSwitch(const char *id, const char *name, const char *icon, bool *state);
 ```
+*Variable can be in bool only*
 
 Example:
 ```cpp
@@ -163,11 +197,14 @@ webConnect.addSwitch("relay1", "Relay 1", "fa fa-lightbulb", &relay1);
 3. `fa fa-lightbulb` is the lightbulb icon in Fontawesome.
 4. `&relay1` is the reference to the relay1 variable.
 
+
 ### Adding Buttons
 Buttons can be added to trigger actions. The `addButton` method takes 4 arguments:
+
 ```cpp
-webConnect.addButton("ID", "Text-on-button", "Icon", callbackFunction);
+webConnect.addButton(const char *id, const char *name, const char *icon, std::function<void()> onPress);
 ```
+*Note: It will need fucntion void() to run*
 
 Example:
 ```cpp
@@ -422,34 +459,6 @@ float updateCount() {
     return count;
 }
 ```
-
-------------
-
-
-## To-Do
-- [ ] New Protocol such as Matter, Lo-Ra and ESP-Now
-- [x] Change addSensor to accept Float, Int, String
-- [ ] Connection with Home Assistance
-- [x] addSensor no need callback functions
-- [x] Custom Card size
-- [ ] Custom Icon size
-- [ ] More CSS option
-- [ ] Adding Slider
-- [ ] Adding Joystick
-- [x] Adding input Number and Text
-- [ ] Adding regex option on input
-- [ ] Adding bar graph
-- [ ] Adding line graph
-- [x] OTA from .bin
-- [x] OTA from URL
-- [ ] Upload custom CSS on web interface
-- [ ] Device/firmware info and debug
-- [ ] Adding firmware info field and JSON on SPIFF
-- [ ] Spilit the codebase to smaller chunk so can use ala-carte
-- [ ] Better memory management
-- [x] Change `String` to `const char*` for better memory management
-- [ ] Better documentation
-- [ ] More `#Define` option for reduce compilation size 
 
 ------------
 
