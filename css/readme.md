@@ -18,27 +18,45 @@ Default colour theme.
 ```CSS
 :root {
     /* Global color settings */
-    --background-color: #1a1a1a; /* Main background color */
-    --text-color: #e0e0e0; /* General text color */
-    --header-text-color: #ffffff; /* Header text color */
-    --input-border-color: #555; /* Input border color */
-    --input-background-color: #1a1a1a; /* Input background color */
+    --background-color: #1a1a2e; /* Background color */
+    --text-color: #dcd6f7; /* Text color */
+    --header-text-color: #dcd6f7; /* Header text color */
+    --input-border-color: #4e4e8a; /* Input border color */
+    --input-background-color: #1a1a2e; /* Input background color */
     --button-text-color: #ffffff; /* Button text color */
-    --button-background-color: #008CBA; /* Button background color */
-    --button-hover-color: #007B9A; /* Button hover color */
-    --toggle-on-background-color: #2196F3; /* Toggle background color when checked */
+    --button-background-color: #5c439a; /* Button background color */
+    --button-hover-color: #4e4e8a; /* Button hover color */
+    --toggle-on-background-color: #f4c542; /* Toggle background color when checked */
     --toggle-on-color: #ffffff; /* Toggle knob color when on */
     --toggle-off-background-color: #ccc; /* Toggle background color when unchecked */
     --toggle-off-color: #ffffff; /* Toggle knob color when off */
-    --table-border-color: #ddd; /* Table border color */
-    --table-header-color: #f2f2f2; /* Table header background color */
-    --card-background-color: #333; /* Card background color */
-    --icon-color: #008CBA; /* Icon color */
-    --notification-background-color: #333; /* Notification background color */
-    --notification-icon-color: #008CBA; /* Notification icon color */
+    --table-border-color: #4e4e8a; /* Table border color */
+    --table-header-color: #826cd7; /* Table header background color */
+    --card-background-color: #25274d; /* Card background */
+    --icon-color: #f4c542; /* Icon color */
+    --notification-background-color: #25274d; /* Notification background color */
+    --notification-icon-color: #f4c542; /* Notification icon color */
     --close-button-color: #ff0000; /* Close button color */
-}
+    --slider-rail-color:  #826cd7; /* Slider rail color */
+    --slider-thumb-color:#f4c542; /* Slider thumb color */
+    --slider-thumb-border-color: #1a1a2e; /* Slider thumb border color */
 
+    /* Font Size Variables */
+    --base-font-size: 16px; /* Base font size for body */
+    --h1-font-size: 2em;
+    --h2-font-size: 1.75em;
+    --h3-font-size: 1.25em;
+    --p-font-size: 1em;
+    --form-font-size: 1em;
+    --input-font-size: 1em;
+    --button-font-size: 1.25em;
+    --button-card-font-size: 1.2em;
+    --card-font-size: 1.2em;
+    --table-font-size: 1em;
+    --notification-font-size: 1em;
+    --notification-message-font-size: 1.375em;
+    --close-button-font-size: 1.25em;
+}
 ```
 
 ## Light
@@ -80,25 +98,30 @@ Dark mode friendly, purple based on Keqing from Genshin Impact.
 ```CSS
 :root {
     /* Global color settings */
-    --background-color: #2b1e44; /* Dark purple, reflecting Keqing's main outfit */
-    --text-color: #e0e0e0; /* Light gray for general content */
-    --header-text-color: #ffffff; /* White for headers to stand out */
-    --input-border-color: #907aad; /* Soft lavender for input borders */
-    --input-background-color: #3a2e54; /* Deep purple for input backgrounds */
-    --button-text-color: #ffffff; /* White for button text */
-    --button-background-color: #a48ad1; /* Light lavender for buttons, similar to her accents */
-    --button-hover-color: #8e75bf; /* Slightly darker lavender for button hover */
-    --toggle-on-background-color: #d5c6f1; /* Light lilac purple for toggle background when checked */
-    --toggle-on-color: #ffffff; /* White for toggle knob when on */
-    --toggle-off-background-color: #5a4e76; /* Muted purple for toggle background when unchecked */
-    --toggle-off-color: #ffffff; /* White for toggle knob when off */
-    --table-border-color: #7b659c; /* Medium lavender for table borders */
-    --table-header-color: #4b3b64; /* Darker purple for table headers */
-    --card-background-color: #3a2e54; /* Deep purple for card background */
-    --icon-color: #a48ad1; /* Light lavender for icons */
-    --notification-background-color: #4b3b64; /* Dark purple for notification backgrounds */
-    --notification-icon-color: #a48ad1; /* Light lavender for notification icons */
-    --close-button-color: #ff6b6b; /* Soft red-pink for close button, contrasting with purple tones */
+    --background-color: #1a1a2e; /* Background color */
+    --text-color: #dcd6f7; /* Text color */
+    --header-text-color: #dcd6f7; /* Header text color */
+    --input-border-color: #4e4e8a; /* Input border color */
+    --input-background-color: #1a1a2e; /* Input background color */
+    --button-text-color: #ffffff; /* Button text color */
+    --button-background-color: #5c439a; /* Button background color */
+    --button-hover-color: #4e4e8a; /* Button hover color */
+    --toggle-on-background-color: #f4c542; /* Toggle background color when checked */
+    --toggle-on-color: #ffffff; /* Toggle knob color when on */
+    --toggle-off-background-color: #ccc; /* Toggle background color when unchecked */
+    --toggle-off-color: #ffffff; /* Toggle knob color when off */
+    --table-border-color: #4e4e8a; /* Table border color */
+    --table-header-color: #826cd7; /* Table header background color */
+    --card-background-color: #25274d; /* Card background */
+    --icon-color: #f4c542; /* Icon color */
+    --notification-background-color: #25274d; /* Notification background color */
+    --notification-icon-color: #f4c542; /* Notification icon color */
+    --close-button-color: #ff0000; /* Close button color */
+    --slider-rail-color:  #826cd7; /* Slider rail color */
+    --slider-thumb-color:#f4c542; /* Slider thumb color */
+    --slider-thumb-border-color: #1a1a2e; /* Slider thumb border color */
+
+	/* Font setting follow example */
 }
 ```
 
