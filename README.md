@@ -123,7 +123,7 @@ yourproject.ino
 You need to follow the JSON and file structure for the library can running properly.
 
 ## Dashboard Elements
-[![Dashboard Image](https://raw.githubusercontent.com/officialdanielamani/ESPWebConnect/main/image/Dashboard.png "Dashboard Image")](https://raw.githubusercontent.com/officialdanielamani/ESPWebConnect/main/image/Dashboard.png "Dashboard Image")
+[![Dashboard Image](https://raw.githubusercontent.com/officialdanielamani/ESPWebConnect/main/image/Keqing.png "Dashboard Image")](https://raw.githubusercontent.com/officialdanielamani/ESPWebConnect/main/image/Keqing.png "Dashboard Image")
 
 By default Dashboard is on `http://your-esp-ip/dashboard`
 
