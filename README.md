@@ -31,6 +31,7 @@ This library is in **BETA** development and for internal usage of ProjectEDNA. D
 - [ ] New Protocol such as Matter, Lo-Ra and ESP-Now
 - [x] Change addSensor to accept Float, Int, String
 - [ ] Connection with Home Assistance
+- [ ] Update the initilization formatting to `TYPE(ID,ICON,VAR,TEXT,TEXT,TEXT, OPTION, OPTION, OPTION)` for more consistency 
 - [ ] Stable MQTT intergation
 - [ ] Telegram intergation
 - [x] addSensor no need callback functions
