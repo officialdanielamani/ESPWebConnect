@@ -58,7 +58,8 @@ This library is in **BETA** development and for internal usage of ProjectEDNA. D
 - [ ] Better documentation
 - [ ] More `#Define` option for reduce compilation size 
 
-Graph,Slider,Joystick in Alpha development. We currently collabrate to using vanillaJS as main framework.
+- Graph,Slider,Joystick in Alpha development. We currently collabrate to using vanillaJS as main framework.
+
 ------------
 
 ## Installation
