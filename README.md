@@ -2,7 +2,7 @@
 
 ## Overview
 
-`ESPWebConnect` is a comprehensive library designed for the ESP32 platform. It provides easy integration for WiFi, MQTT, Web-Dashboard, OTA update to monitor and control your IoT devices. This library enables seamless connectivity and interaction with sensors, switches, and buttons through a web interface. More control, more customization, no longer need depending on 3rd party cloud provider.
+`ESPWebConnect` is a comprehensive library designed for the ESP32 platform. It provides easy integration for WiFi, MQTT, Web-Dashboard, OTA update to monitor and control your IoT devices. This library enables seamless connectivity and interaction with sensors, switches, and buttons through a web interface. More control, more customization, no longer need depending on 3rd party cloud provider. TLDR, it about like Blynk but can run offline with more customization
 
 You can try use our installer at to test some example projects: ~~https://danielamani.com/project/core_firmware/index.html~~
 (Note only on Chrome Desktop, ensure disable Serial Monitor and Serial Plotter first)
@@ -58,6 +58,7 @@ This library is in **BETA** development and for internal usage of ProjectEDNA. D
 - [ ] Better documentation
 - [ ] More `#Define` option for reduce compilation size 
 
+Graph,Slider,Joystick in Alpha development. We currently collabrate to using vanillaJS as main framework.
 ------------
 
 ## Installation
