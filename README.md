@@ -30,12 +30,9 @@ This library is in **BETA** development and for internal usage of ProjectEDNA. D
 ## To-Do
 - [ ] New Protocol such as Matter, Lo-Ra and ESP-Now
 - [x] Change addSensor to accept Float, Int, String
-- [ ] Connection with Home Assistance
-- [ ] Update the initilization formatting to `TYPE(ID,ICON,VAR,TEXT,TEXT,TEXT, OPTION, OPTION, OPTION)` for more consistency 
 - [ ] Stable MQTT intergation
 - [ ] Telegram intergation
 - [x] addSensor no need callback functions
-- [x] Custom Card size
 - [ ] Custom Icon size
 - [ ] More CSS option
 - [ ] Upload own CSS from web interface
@@ -48,15 +45,13 @@ This library is in **BETA** development and for internal usage of ProjectEDNA. D
 - [ ] Adding line graph
 - [x] OTA from .bin
 - [x] OTA from URL
-- [ ] OTA URL support MD5 hash integrity
+- [x] OTA URL support MD5 hash integrity
 - [ ] Upload custom CSS on web interface
-- [ ] Device/firmware info and debug
-- [ ] Adding firmware info field and JSON on SPIFF
 - [ ] Spilit the codebase to smaller chunk so can use ala-carte
 - [ ] Better memory management
-- [x] Change `String` to `const char*` for better memory management on Dashboard
 - [ ] Better documentation
-- [ ] More `#Define` option for reduce compilation size 
+- [ ] More `#Define` option for reduce compilation size
+
 
 - Graph,Slider,Joystick in Alpha development. We currently collabrate to using vanillaJS as main framework.
 
@@ -82,6 +77,7 @@ This library is in **BETA** development and for internal usage of ProjectEDNA. D
 
 
 ## Usage
+**- Note: This documentation is for Version 2.0 ESPWebC**
 
 ### Core System Selection
 To reduce the library code during compilation you can enable MQTT functionality by adding or enable `#define ENABLE_MQTT` on ESPWebConnect.cpp on like this example path of Arduino library `C:\Users\YOUR-PC\Documents\Arduino\libraries\ESPWebConnect`
@@ -104,10 +100,11 @@ void setup() {
 }
 
 void loop() {
-    // Handle client requests
-    webConnect.handleClient();
+  // No need callback
 }
 ```
+
+All widgets using XHR poling (time set by `setAutoUpdate()`. When the interval time reach it will get the value of the variable it in widgets setup (eg: `&value`). Example if `int value = 25` change it value to `35` on next poling rate it will send the updated value in this case `35`.
 
 ### SPIFF Structure and system configurations
 
@@ -121,14 +118,27 @@ yourproject.ino
 		settings-wifi.json
 		settings-mqtt.json
 		settings-web.json
+		dash.js
 		style.css
 ```
 You need to follow the JSON and file structure for the library can running properly.
 
-## Dashboard Elements
-[![Dashboard Image](https://raw.githubusercontent.com/officialdanielamani/ESPWebConnect/main/image/Keqing.png "Dashboard Image")](https://raw.githubusercontent.com/officialdanielamani/ESPWebConnect/main/image/Keqing.png "Dashboard Image")
+## Dashboard Example
+[![Dashboard Image](https://raw.githubusercontent.com/officialdanielamani/ESPWebConnect/main/image/Dashboard.png "Dashboard Image")](https://raw.githubusercontent.com/officialdanielamani/ESPWebConnect/main/image/Dashboard.png "Dashboard Image")
 
-By default Dashboard is on `http://your-esp-ip/dashboard`
+- By default Dashboard is on `http://your-esp-ip/dashboard`.
+- Click **Select Widget** and choose widgets that need to be display on dashboard.
+- Drag,resize and put the widget on where you want.
+- If want to remove widget, simply click `X` on top right of widget.
+- To choose theme, click **Theme** and select theme that you want.
+- Default theme is **Keqing**, there also **Light** and **Dark**
+- To save your configurations, click **Save**, when the page reload, it will follow the last save configuration.
+- To clear configuration, click **Clear**, all widgets will be remove and cleared.
+
+**Limitation**
+- Widgets selection depend on the ESP32 program
+- The configuration is save on the spesific browser cache. If you clear cache or ESP32 using different IP or you change device, the configuration will not show up as it store configuration locally on browser cache.
+- It is recommended to clear the Dashboard if you have make any changes on dashboard widgets in the ESP32 program.
 
 ### Dashboard Configuration
 
@@ -136,82 +146,82 @@ By default Dashboard is on `http://your-esp-ip/dashboard`
 `webConnect.setDashPath("/dashboard");`
 Default value if not set is `/dashboard`
 
-- Optional: Set Title
-`webConnect.setTitle("My IoT Dashboard");`
-Default value if not set is `Dashboard Interface`
-
-- Optional: Set Description
-`webConnect.setDesc("Control my Smart home here");`
-Default value if not set is `Example interface using the ESPWebConnect library`
-
 - Optional: Set Icon URL
 `webConnect.setIconUrl("https://your-icon-css");`
 Default value using Fontawesome icons repo.
 
-- Optional: Set Website fetch data interval
+- Optional: Set Dashboard fetch data interval
 `webConnect.setAutoUpdate(2500);`
-Default value is 1000 millis if not set.
+Default value `5000` if not set.
 
-- Optional: Set Dashbaord Card size
-`webConnect.setAllCardSize(180, 180); `
-Default value is 200 if not set (Unit: pixel).
+- Optional: Set Dashboard info
+`webConnect.setDashInfo("Title", Desription", "https://danielamani.com/image/SmartHome.png", "Footer Text");`
+Not all arguments are required. If to skip just ` ""` part that not needed, it will fallback to default value.
 
-For detail about colour theme go to : [Theme documentation](https://github.com/officialdanielamani/ESPWebConnect/tree/main/css "Theme documentation")
+- Optional: Set Manufacture info
+`setManifactureInfo("Developer", "Device", "Desription ", "Version");`
+Not all arguments are required. If to skip just ` ""` part that not needed, it will fallback to default value. This will be dsipaly on system information on `/espwebc`
+
+
+## Dashboard Widgets
+Note: For all **widgets ID**, it need **unique** for each widgets as XHR polling will use the widgets ID to get value from the variables. It advice to **not have whitespace or special character in the ID**.
 
 ### Adding Sensors/Reading/Display
 
-This function will take reading and show it on the dashboard. It takes 5 arguments:
-```cpp
-webConnect.addSensor(const char *id, const char *name, const char *unit, const char *icon, [*variable];
+This function will take reading and show it on the dashboard. The `addSensor()` takes **6** arguments:
 
+```cpp
+void addSensor(const char *id, const char *name, const char *desc, const char *icon, [&Variable] , const char *unit);
 ```
 
-*Variable can be in float, int or String*
+*Variable can only be in float, int or String*
 
 Example:
 ```cpp
-webConnect.addSensor("tempDHT11", "Temperature", "°C", "fa fa-thermometer-half", &temperature);
+webConnect.addSensor("tempDHT11", "Temperature", "Indoor sensor", "fa fa-thermometer-half", &tempDHT, "C");
 ```
 
 1. `tempDHT11` is the ID (This is needed for icon color)
 2. `Temperature` will show up as text in the sensor title.
-3. `°C` displays the unit of temperature
+3. `Indoor sensor` will show up as text for desription 
 4. `fa fa-thermometer-half` thermometer icon in Fontawesome
-5. `&temperature` the variable need updated (*Example float temperature*)
-
-The value will be update after set data interval.
+5. `&tempDHT` the variable need updated (*Example float temperature*)
+6. `C` will show up as unit (right from the value)
 
 
 ### Adding Switches
 
-You can add switches to control digital outputs (e.g., relays). The `addSwitch` method takes 4 arguments:
+You can add switches to control digital outputs (e.g., relays). The `addSwitch()` method takes **5** arguments:
 ```cpp
-webConnect.addSwitch(const char *id, const char *name, const char *icon, bool *state);
+void addSwitch(const char *id, const char *name, const char *desc, const char *icon, bool *state);
 ```
 *Variable can be in bool only*
 
 Example:
 ```cpp
-webConnect.addSwitch("relay1", "Relay 1", "fa fa-lightbulb", &relay1);
+webConnect.addSwitch("relay-1", "Fan", "Main ceiling fan", "fa-solid fa-fan", &relay1);
 ```
 
 1. `relay1` is the ID.
-2. `Relay 1` will show up as text in the switch title.
-3. `fa fa-lightbulb` is the lightbulb icon in Fontawesome.
+2. `Fan` will show up as text in the switch title.
+2. `Main ceiling fan` will show up as text in the description.
+3. `fa-solid fa-fan` is the lightbulb icon in Fontawesome.
 4. `&relay1` is the reference to the relay1 variable.
+
+*Switch is instant, will not follow `setAutoUpdate()` value. But the status variable data from ESP32 will update according `setAutoUpdate()` *
 
 
 ### Adding Buttons
-Buttons can be added to trigger actions. The `addButton` method takes 4 arguments:
+Buttons can be added to trigger actions. The `addButton()` method takes **5** arguments:
 
 ```cpp
-webConnect.addButton(const char *id, const char *name, const char *icon, std::function<void()> onPress);
+void addButton(const char *id, const char *name, const char *desc, const char *icon, std::function<void()> onPress);
 ```
-*Note: It will need fucntion void() to run*
+*Note: It will need function void() to run*
 
 Example:
 ```cpp
-webConnect.addButton("btn1", "Press Me", "fa fa-hand-pointer", onButtonPress);
+webConnect.addButton("btn1", "Emergency", "Trigger the alarm", "fa-solid fa-triangle-exclamation", onButtonPress);
 //Other code
 void onButtonPress() {
     Serial.println("Button Pressed!");
@@ -219,87 +229,102 @@ void onButtonPress() {
 ```
 
 1. `btn1` is the ID.
-2. `Press Me` will show up as text on the button.
-3. `fa fa-hand-pointer` is the hand pointer icon in Fontawesome.
-4. `onButtonPress` is the function to be called when the button is pressed.
+2. `Emergency` will show up as text on the button.
+3. `Trigger the alarm` will show up as text for desription.
+4. `"fa-solid fa-triangle-exclamation` is the hand pointer icon in Fontawesome.
+5. `onButtonPress` is the function to be called when the button is pressed.
+
+*Button is instant, will not follow `setAutoUpdate()` value*
 
 
-### Colour the icon
+### Adding Input (Number)
+Input number can take and save numeral value to the variable. The `addInputNum()` method takes **5** arguments. It only accept *int and float* as variable
+
+```cpp
+void addInputNum(const char *id, const char *name, const char *desc, const char *icon, [&Variable] );
+```
+Example:
+```cpp
+webConnect.addInputNum("setWarnTemp", "Set High Temperature", "", "fa-solid fa-temperature-high", &setTemp);
+```
+
+1. `setWarnTemp` is the ID.
+2. `Set High Temperature` will show up as text in the Input title.
+3. ` ` will show up as text for desription (This case set as blank).
+4. `"fa-solid fa-temperature-high` is icon in Fontawesome.
+5. `&setTemp`  is the reference to the setTemp variable.
+
+*Input is instant, will not follow `setAutoUpdate()` value*
+
+### Adding Input (String)
+Input number can take and save numeral value to the variable. The `addInputNum()` method takes **5** arguments. It only accept *String* as variable.
+
+```cpp
+void addInputNum(const char *id, const char *name, const char *desc, const char *icon, [&Variable] );
+```
+Example:
+```cpp
+webConnect.addInputNum("setTextDisplay", "Send Text", "Display on OLED", "fa-solid fa-pencil", &displaytext);
+```
+
+1. `setTextDisplay` is the ID.
+2. `Send Text` will show up as text in the Input title.
+3. `Display on OLED` will show up as text for desription.
+4. `"fa-solid fa-temperature-high` is icon in Fontawesome.
+5. `&displaytext`  is the reference to the setTemp variable.
+
+*Input is instant, will not follow `setAutoUpdate()` value*
+
+### Sending Notifications
+
+Input number can take and save numeral value to the variable. The `addInputNum()` method takes 5 arguments. It only accept *int and float* as variable
+
+```cpp
+void sendNotification(const String &id, const String &message, const String &messageColor, const String &icon, const String &iconColor, int timeout);
+```
+
+Example:
+```cpp
+webConnect.sendNotification("mqtt", displaytext, "white", "fa-regular fa-envelope", "blue", 10);
+```
+
+1. `mqtt` is the ID.
+2. `displaytext` is the String to display text. You also can use like ` "Hello" `
+3. `white` is the message color.
+4. `fa-regular fa-envelope` is the icon in Fontawesome.
+5. `blue` is the icon color.
+6. `5` is the duration in seconds to display notification.
+
+*This function can be call in anywhere that you want to show notification. No need to initiatize.*
+
+### Set Icon Color
 
 To set the color of the icon, use the `setIconColor` method:
 ```cpp
 webConnect.setIconColor("ID", "color");
 ```
-
 Example:
 ```cpp
 webConnect.setIconColor("relay1", "#FF0000");// Set Relay 1 icon to red
 ```
-
 For colour can use HEX value or colour name as `red`
+If the icon colour not set, it will use default theme icon colour.
 
-### Set Individual Card size
-
-The icon size is using multiplier from default/setAllCardSize value.
-```cpp
-webConnect.setCardSize("ID",float-X,float-Y);
-```
-Example:
-```cpp
-webConnect.setCardSize("inputTimer",0.8,2);
-```
-
-1. `inputTimer` is the ID of card that need to change
-2. `0.8` will be times with value X (width card).
-3. `2` will be times with value Y (height card).
-
-### Sending Notifications
-
-Send notifications to the dashboard:
-```cpp
-webConnect.sendNotification("ID", "Message", "bg-color", "icon", "icon-color", duration);
-```
-
-Example:
-```cpp
-webConnect.sendNotification("notify1", "Hello World", "blue", "fa fa-info", "white", 5);
-```
-
-1. `notify1` is the ID.
-2. `Hello World` is the message to display.
-3. `blue` is the background color.
-4. `fa fa-info` is the icon in Fontawesome.
-5. `white` is the icon color.
-6. `5` is the duration in seconds.
 
 ------------
 
-## OTA update
+## ESPWebC Configurations Page
 
-### OTA via File Upload
+In this page there are:
+- Wi-Fi Settings
+- MQTT Settings (Ignore is cannot fetch as this will show up if MQTT is not used)
+- Web Settings
+- System Information
+- OTA Update via File Upload
+- OTA Update via URL
+- Reboot ESP32
 
-To update firware can go to ESP32 configuration page at `http://your-esp-ip/espwebc`. Can be updated using .bin file or via URL.
-For generating .bin file, on Arduino IDE top navigation go to `Sketch -> Export Compile Binary`. If success on your Arduino project there will be a new folder called build. Go inside and find folder related to ESP32. In last folder there will be;
-```markdown
-yourproject.ino
-	/build
-		/esp32.esp32.esp32da
-			yourproject.ino.bin
-			yourproject.ino.bootloader.bin
-			yourproject.ino.elf
-			yourproject.ino.map
-			yourproject.ino.merged.bin
-			yourproject.ino.partitions.bin
-```
-Select `yourproject.ino.bin` as .bin file to upload. Wait awhile until your ESP32 reboot. If success you can see the changes and update.
-
-### OTA via URL
-
--TODO
-
-------------
-
-## ESP32 Setting via web interface
+Below example of Wi-Fi Settings
 
 [![Example ESP32 Configuration page](https://raw.githubusercontent.com/officialdanielamani/ESPWebConnect/main/image/Webc.png "Example ESP32 Configuration page")](hthttps://raw.githubusercontent.com/officialdanielamani/ESPWebConnect/main/image/Webc.pngtp:// "Example ESP32 Configuration page")
 
@@ -386,6 +411,75 @@ Serial.println(webConnect.mqttSettings.MQTT_Broker);
 
 ------------
 
+## OTA update
+
+### OTA via File Upload
+
+To update firware can go to ESP32 configuration page at `http://your-esp-ip/espwebc`. Can be updated using .bin file or via URL.
+For generating .bin file, on Arduino IDE top navigation go to `Sketch -> Export Compile Binary`. If success on your Arduino project there will be a new folder called build. Go inside and find folder related to ESP32. In last folder there will be;
+```markdown
+yourproject.ino
+	/build
+		/esp32.esp32.esp32da
+			yourproject.ino.bin
+			yourproject.ino.bootloader.bin
+			yourproject.ino.elf
+			yourproject.ino.map
+			yourproject.ino.merged.bin
+			yourproject.ino.partitions.bin
+```
+Select `yourproject.ino.bin` as .bin file to upload. Wait awhile until your ESP32 reboot. If success you can see the changes and update.
+
+### OTA via URL
+
+You can update via URL. It need URL that point to publicly JSON with this scheme:
+
+```JSON
+[
+    {
+        "Developer": "EDNA",
+        "Author": "Daniel Amani",
+        "Image": "https://danielamani.com/image/logo.jpg",
+        "Title": "Basic Smart Home",
+        "Info": "Control 4 relays only",
+        "Version": "V1.2",
+        "URL": "https://raw.githack.com/officialdanielamani/officialdanielamani.github.io/main/project/core_firmware/firmware/smarthome_basic/program.bin",
+        "MD5": "c356421dc4ca935fc001efdb7b771a57"
+    },
+    {
+        "Developer": "",
+        "Author": "",
+        "Image": "",
+        "Title": "",
+        "Info": "",
+        "Version": "",
+        "URL": "",
+		"MD5": ""
+    }
+]
+```
+
+The first is example of how the JSON will be look.
+
+1. `Developer` or manufacture (Optional)
+2. `Author` or who publish it (Optional)
+3. `Image` point to icon / image related to device (Optional)
+4. `Title` is the project/device name ()ptional)
+5. `URL` is where `project.bin` is located, need public access link **(Required)**
+6. `MD5` is hash of `project.bin` **(Required)**
+
+[![OTA URL](https://raw.githubusercontent.com/officialdanielamani/ESPWebConnect/main/image/OTA-URL.png "Update via URL")](https://raw.githubusercontent.com/officialdanielamani/ESPWebConnect/main/image/OTA-URL.png "Update via URL")
+
+**How to update via URL**
+- Put the URL that pointing to the `JSON` list of firmware. 
+- If not set it will use default built-in URL.
+- Click `Load Firmware Option` will show up the available list. 
+- Click `Choose this Firmware` to update.
+- If the `program.bin` and `MD5` hash is not match the OTA will fail as it may corrupted.
+- If no problem, the ESP32 will reboot and updated firmware will be running.
+
+------------
+
 ### Web Settings Functions
 When Web Lock is tick and reboot, you need to enter Web Username and Web Password. If forget can reset by flash new JSON file.
 
@@ -424,17 +518,17 @@ void setup() {
 
     webConnect.begin();
     webConnect.setIconUrl("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css");
-    webConnect.setCSS("style.css");
-    webConnect.setAllCardSize(180, 180);
-    webConnect.setDesc("My Smart Home Panel");
+
     webConnect.setAutoUpdate(2500);
-    webConnect.addSwitch("relay-1", "Relay-1", "fa-regular fa-lightbulb", &relay1);
+	webConnect.setDashInfo("Smart Home", "basic control", "https://danielamani.com/image/SmartHome.png", "");
+  webConnect.setManifactureInfo("EDNA", "Smart Home", "Basic", "V0.1.7");
+    webConnect.addSwitch("relay-1", "Switch 1","Light", "fa-regular fa-lightbulb", &relay1);
     webConnect.setIconColor("relay-1", "#D3D876");
-    webConnect.addSwitch("relay-2", "Relay-2", "fa-solid fa-fan", &relay2); 
-    webConnect.addSensor("counter", "Counter", "", "fa fa-infinity", &count);
+    webConnect.addSwitch("relay-2", "Switch 2", "Fan", fa-solid fa-fan", &relay2); 
+    webConnect.addSensor("counter", "Counter", "", "fa fa-infinity", &count, "++");
     webConnect.addButton("btn1", "Press Me", "fa fa-hand-pointer", onButtonPress);
-    webConnect.addInputText("input-text", "Enter text:", "fa-solid fa-pencil", &text);
-    webConnect.addSensor("text-val", "Input text value", "", "fa-solid fa-print", &text);
+    webConnect.addInputText("input-text", "Enter text:", "","fa-solid fa-pencil", &text);
+	webConnect.addInputNum("input-text", "Enter number:", "","fa-solid fa-pencil",  &count);
 }
 
 void loop() {
@@ -449,21 +543,79 @@ void loop() {
 }
 
 void onButtonPress() {
-  Serial.println("Button is press");
-  webConnect.sendNotification("noti-count", "Button is pressed" , "white", "fa-regular fa-envelope", "white", 10);
+  Serial.println("Button is press and show stored text");
+  webConnect.sendNotification("mqtt", text, "white", "fa-regular fa-envelope", "blue", 10);
 }
 
 float updateCount() {
     count++;
     if (count > 50) {
         count = 0;
-        webConnect.sendNotification("noti-count", "~ Reset Counter" , "white", "fa-regular fa-envelope", "white", 10);
+        webConnect.sendNotification("countNoti", "Reset Count", "white", "fa-regular fa-envelope", "black", 10);
     }
     return count;
 }
 ```
 
 ------------
+## Docker Compose Setup
+Below is example of Docker compose containing:
+- Node-Red
+- MQTT Mosquitto
+- SQLitebrowser
+- Cloudflare Tunnel
+
+This setup using Portainer container manager.
+
+```YAML
+version: '3.8'
+
+services:
+  node-red:
+    image: nodered/node-red:latest
+    container_name: noderedtest
+    restart: always
+    ports:
+      - "1880:1880"
+    volumes:
+      - /portainer/Files/AppData/Test/nodered:/data
+
+  mqtt:
+    image: eclipse-mosquitto:latest
+    container_name: mosquittotest
+    restart: always
+    ports:
+      - "1883:1883"
+      - "9001:9001"
+    volumes:
+      - /portainer/Files/AppData/Test/mqtt/data:/mosquitto/data
+      - /portainer/Files/AppData/Test/mqtt/config:/mosquitto/config
+      - /portainer/Files/AppData/Test/mqtt/log:/mosquitto/log
+      
+  sqlitebrowser:
+    image: lscr.io/linuxserver/sqlitebrowser:latest
+    container_name: sqlitebrowser
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC
+      - CUSTOM_USER=CHANGEME
+      - PASSWORD=CHANGEME
+    volumes:
+      - /portainer/Files/AppData/Test/sqlite/config:/config
+    ports:
+      - "3000:3000"
+      - "3001:3001"
+    restart: unless-stopped
+
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: cloudflaredtest
+    restart: always
+    environment:
+      TUNNEL_TOKEN: "<YOUR_CLOUDFLARE_TUNNEL_TOKEN>"
+```
+
 
 ## License
 

@@ -10,8 +10,127 @@
         .error {
             color: red;
         }
+
+        .firmware-item {
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin-bottom: 20px;
+        }
+
+        .firmware-item h3 {
+            margin-top: 0;
+        }
+
+        .firmware-item img {
+            max-width: 200px;
+            display: block;
+            margin-top: 10px;
+        }
     </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.0.0/crypto-js.min.js"></script>
     <script>
+        const dashJsVersion = "1.0";
+        document.addEventListener('DOMContentLoaded', function () {
+            loadDashboard();
+            updateSystemInfo();
+
+            // Initialize card toggling after DOM is loaded and elements exist
+            document.querySelectorAll('.card-title').forEach(function (title) {
+                title.addEventListener('click', function (event) {
+                    // Stop propagation if necessary, or rely on structure so only title toggles
+                    event.stopPropagation();
+                    const cardElement = this.closest('.card');
+                    if (cardElement) {
+                        cardElement.classList.toggle('expanded');
+                    }
+                });
+            });
+
+            // Initialize any other event listeners here
+            // Make sure handleFileSelect and handleUrlSubmit are defined before calling them
+            var fileInput = document.getElementById('file');
+            if (fileInput) {
+                fileInput.addEventListener('change', handleFileSelect, false);
+            }
+
+            var urlForm = document.getElementById('otaUrlForm');
+            if (urlForm) {
+                urlForm.addEventListener('submit', handleUrlSubmit, false);
+            }
+
+            // Fetch initial data
+            fetchWifiSettings();
+            fetchMQTTSettings();
+            fetchWebSettings();
+        });
+
+
+        function loadDashboard() {
+            const savedState = JSON.parse(localStorage.getItem("dashboardSettings"));
+            if (!savedState) return;
+
+            if (savedState.theme) {
+                document.body.dataset.theme = savedState.theme;
+            }
+        }
+
+        function checkCssVersion() {
+            return fetch('style.css')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Failed to fetch CSS file');
+                    }
+                    return response.text();
+                })
+                .then(cssText => {
+                    const versionMatch = cssText.match(/\/\*\s*Version:\s*([\d.]+)\s*\*\//);
+                    if (versionMatch && versionMatch[1]) {
+                        return versionMatch[1];
+                    } else {
+                        throw new Error('CSS version not found');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    return 'Unknown';
+                });
+        }
+
+        function fetchSystemInfo() {
+            return fetch('/systeminfo')
+                .then(response => response.json())
+                .catch(() => ({
+                    libWebC: "Unknown",
+                    developer: "Unknown",
+                    device: "Unknown",
+                    description: "Unknown",
+                    version: "Unknown"
+                }));
+        }
+
+        function updateSystemInfo() {
+            const systemInfoElement = document.getElementById('systeminfo');
+            if (!systemInfoElement) {
+                console.error('System info element not found');
+                return;
+            }
+
+            // Fetch CSS version and system info concurrently
+            Promise.all([checkCssVersion(), fetchSystemInfo()])
+                .then(([cssVersion, systemInfo]) => {
+                    // Update the systeminfo element
+                    systemInfoElement.innerHTML = `
+                <p>ESPWebC : ${systemInfo.libWebC}</p>
+                <p>dash.js : ${dashJsVersion}</p>
+                <p>style.css: ${cssVersion}</p>
+                <p>Developer: ${systemInfo.developer}</p>
+                <p>Device: ${systemInfo.device}</p>
+                <p>Description: ${systemInfo.description}</p>
+                <p>Version: ${systemInfo.version}</p>
+            `;
+                });
+        }
+
         function fetchWifiSettings() {
             fetch('/getWifiSettings')
                 .then(response => {
@@ -69,49 +188,10 @@
                 });
         }
 
-        function fetchLORASettings() {
-            fetch('/getLORASettings')
-                .then(response => {
-                    if (!response.ok) throw new Error('Network response was not ok');
-                    return response.json();
-                })
-                .then(data => {
-                    document.getElementById('LORA_Key').value = data.LORA_Key;
-                    document.getElementById('LORA_CRC').checked = data.LORA_CRC;
-                    document.getElementById('LORA_RSSI').value = data.LORA_RSSI;
-                    document.getElementById('LORA_PacketHZErr').value = data.LORA_PacketHZErr;
-                    document.getElementById('LORA_Spread').value = data.LORA_Spread;
-                    document.getElementById('LORA_Coding').value = data.LORA_Coding;
-                    document.getElementById('LORA_TxPwr').value = data.LORA_TxPwr;
-                    document.getElementById('LORA_Reg').value = data.LORA_Reg;
-                })
-                .catch(error => {
-                    console.error('Error fetching LORA settings:', error);
-                    alert('Failed to fetch LORA settings.');
-                });
-        }
-
         function handleSubmit(event) {
             event.preventDefault();
             const formId = event.target.id;
             const formData = new FormData(event.target);
-
-            let isValid = true;
-            let errorMessage = '';
-
-            // Validate LORA_Key if the form is loraForm
-            if (formId === 'loraForm') {
-                const keyLoRa = document.getElementById('LORA_Key').value;
-                if (!/^(0x)?[0-9A-Fa-f]{1,2}$/.test(keyLoRa) || parseInt(keyLoRa, 16) > 0xFF) {
-                    isValid = false;
-                    errorMessage += 'Invalid LORA_Key. Please enter a value between 0 and 0xFF.\n';
-                }
-            }
-
-            if (!isValid) {
-                alert(errorMessage);
-                return;
-            }
 
             // Convert FormData to JSON maintaining the correct data types.
             const object = Object.fromEntries(formData.entries());
@@ -128,8 +208,6 @@
                 url = '/saveMQTT';
             } else if (formId === 'webForm') {
                 url = '/saveWeb';
-            } else if (formId === 'loraForm') {
-                url = '/saveLORA';
             }
 
             console.log("Submitting JSON:", json);
@@ -151,8 +229,6 @@
                     fetchMQTTSettings();
                 } else if (formId === 'webForm') {
                     fetchWebSettings();
-                } else if (formId === 'loraForm') {
-                    fetchLORASettings();
                 }
             }).catch(error => {
                 console.error('Error:', error);
@@ -160,71 +236,146 @@
             });
         }
 
-        function handleFileSelect(evt) {
-            evt.stopPropagation();
-            evt.preventDefault();
+        document.addEventListener('DOMContentLoaded', function () {
+            const firmwareIndexForm = document.getElementById('firmwareIndexForm');
+            const firmwareIndexUrlInput = document.getElementById('firmwareIndexUrl');
+            const firmwareListContainer = document.getElementById('firmwareListContainer');
+            const defaultFirmwareIndexUrl = "https://raw.githack.com/officialdanielamani/officialdanielamani.github.io/refs/heads/main/project/core_firmware/firmware/firmware-list.json";
 
-            var files = evt.target.files;
-            if (!files.length) {
-                alert("No file selected!");
-                return;
+            let firmwareList = [];
+
+            firmwareIndexForm.addEventListener('submit', function (event) {
+                event.preventDefault();
+                const indexUrl = firmwareIndexUrlInput.value.trim() || defaultFirmwareIndexUrl;
+                firmwareIndexUrlInput.value = indexUrl;
+                if (!indexUrl) {
+                    alert("Please provide a valid JSON URL.");
+                    return;
+                }
+
+                // Fetch the firmware index JSON
+                fetch(indexUrl)
+                    .then(response => {
+                        if (!response.ok) throw new Error('Failed to fetch firmware list');
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (!Array.isArray(data) || data.length === 0) {
+                            throw new Error('Firmware list is empty or invalid');
+                        }
+                        firmwareList = data;
+                        displayFirmwareList(data);
+                    })
+                    .catch(error => {
+                        console.error('Error fetching firmware list:', error);
+                        alert('Error: ' + error.message);
+                    });
+            });
+
+            function displayFirmwareList(list) {
+                firmwareListContainer.innerHTML = '';
+                firmwareListContainer.style.display = 'block';
+
+                list.forEach((fw, index) => {
+                    // Create a container for each firmware item
+                    const itemDiv = document.createElement('div');
+                    itemDiv.className = 'firmware-item';
+
+                    const titleEl = document.createElement('h3');
+                    titleEl.textContent = `Title: ${fw.Title || 'N/A'}`;
+                    itemDiv.appendChild(titleEl);
+
+                    if (fw.Image) {
+                        const imgEl = document.createElement('img');
+                        imgEl.src = fw.Image || 'https://danielamani.com/image/logo.jpg';
+                        imgEl.alt = fw.Title || 'Firmware Image';
+                        imgEl.style.display = 'block';
+                        imgEl.style.margin = '10px auto';
+                        imgEl.style.maxWidth = '64px'; // Set max width
+                        imgEl.style.maxHeight = '64px'; // Set max height
+                        itemDiv.appendChild(imgEl);
+                    }
+
+                    const devEl = document.createElement('p');
+                    devEl.textContent = `Developer: ${fw.Developer || 'N/A'}`;
+                    itemDiv.appendChild(devEl);
+
+                    const authorEl = document.createElement('p');
+                    authorEl.textContent = `Author: ${fw.Author || 'N/A'}`;
+                    itemDiv.appendChild(authorEl);
+
+                    const infoEl = document.createElement('p');
+                    infoEl.textContent = `Info: ${fw.Info || 'N/A'}`;
+                    itemDiv.appendChild(infoEl);
+
+                    const versionEl = document.createElement('p');
+                    versionEl.textContent = `Version: ${fw.Version || 'N/A'}`;
+                    itemDiv.appendChild(versionEl);
+
+                    const chooseBtn = document.createElement('button');
+                    chooseBtn.textContent = 'Choose this Firmware';
+                    chooseBtn.addEventListener('click', function () {
+                        if (!fw.URL || !fw.MD5) {
+                            alert('Selected firmware entry is invalid. Missing URL or MD5.');
+                            return;
+                        }
+                        handleFirmwareFetch(fw.URL, fw.MD5);
+                    });
+                    itemDiv.appendChild(chooseBtn);
+
+                    firmwareListContainer.appendChild(itemDiv);
+                });
             }
 
-            // Only handle one file upload at a time
-            var formData = new FormData();
-            formData.append('file', files[0]);
+            function handleFirmwareFetch(url, md5) {
+                fetch(url)
+                    .then(response => {
+                        if (!response.ok) throw new Error('Network response was not ok');
+                        return response.blob();
+                    })
+                    .then(blob => {
+                        const file = new File([blob], "firmware.bin", { type: "application/octet-stream" });
+                        verifyAndUploadFirmware(file, md5);
+                    })
+                    .catch(error => {
+                        console.error('Error fetching firmware:', error);
+                        alert('Failed to download firmware: ' + error.message);
+                    });
+            }
 
-            var xhr = new XMLHttpRequest();
-            xhr.open('POST', '/update-firmware', true);
+            function verifyAndUploadFirmware(file, expectedMD5) {
+                const reader = new FileReader();
+                reader.onload = function (event) {
+                    const arrayBuffer = event.target.result;
+                    const md5 = CryptoJS.MD5(CryptoJS.lib.WordArray.create(arrayBuffer)).toString();
 
-            xhr.onload = function () {
-                if (xhr.status === 200) {
-                    alert('Upload successful!');
-                } else {
-                    alert('Upload failed!');
-                }
-            };
+                    if (md5 !== expectedMD5) {
+                        alert('MD5 hash mismatch! Firmware is corrupted or tampered.');
+                        return;
+                    }
 
-            xhr.send(formData);
-        }
+                    uploadFirmware(file);
+                };
+                reader.readAsArrayBuffer(file);
+            }
 
-        function handleUrlSubmit(event) {
-            event.preventDefault(); // Prevent default form submission
+            function uploadFirmware(file) {
+                const formData = new FormData();
+                formData.append('file', file);
 
-            const firmwareUrl = document.getElementById('firmwareUrl').value;
+                var xhr = new XMLHttpRequest();
+                xhr.open('POST', '/update-firmware', true);
 
-            fetch(firmwareUrl)
-                .then(response => {
-                    if (!response.ok) throw new Error('Network response was not ok');
-                    return response.blob(); // Convert the response to a Blob
-                })
-                .then(blob => {
-                    const file = new File([blob], "firmware.bin", { type: "application/octet-stream" });
-                    uploadFirmwareFromURL(file); // Call the upload function with the downloaded file
-                })
-                .catch(error => {
-                    console.error('Error fetching firmware:', error);
-                    alert('Failed to download firmware: ' + error.message);
-                });
-        }
-
-        function uploadFirmwareFromURL(file) {
-            const formData = new FormData();
-            formData.append('file', file);
-
-            var xhr = new XMLHttpRequest();
-            xhr.open('POST', '/update-firmware', true);
-
-            xhr.onload = function () {
-                if (xhr.status === 200) {
-                    alert('OTA update via URL successful!');
-                } else {
-                    alert('OTA update via URL failed!');
-                }
-            };
-
-            xhr.send(formData);
-        }
+                xhr.onload = function () {
+                    if (xhr.status === 200) {
+                        alert('OTA update successful!');
+                    } else {
+                        alert('OTA update failed!');
+                    }
+                };
+                xhr.send(formData);
+            }
+        });
 
         function rebootESP() {
             var xhr = new XMLHttpRequest();
@@ -243,7 +394,6 @@
             fetchWifiSettings();
             fetchMQTTSettings();
             fetchWebSettings();
-            fetchLORASettings(); // Fetch LORA settings on page load
             var fileInput = document.getElementById('file');
             fileInput.addEventListener('change', handleFileSelect, false);
 
@@ -264,157 +414,111 @@
 
     <!-- WiFi Settings Card -->
     <div class="center-container">
-        <div class="card" style="width: 80%;;">
-            <h2>WiFi Settings</h2>
-            <form id="wifiForm" onsubmit="handleSubmit(event)">
-                <label for="SSID_Name">SSID/WiFi Name:</label>
-                <input type="text" id="SSID_Name" name="SSID_Name" required><br>
-                <label for="SSID_Pass">SSID/WiFi Password:</label>
-                <input type="password" id="SSID_Pass" name="SSID_Pass"><br>
-                <label for="ESP_MAC">ESP MAC Address:</label>
-                <input type="text" id="ESP_MAC" name="ESP_MAC" readonly><br>
-                <label for="SSID_AP_Name">AP SSID Name:</label>
-                <input type="text" id="SSID_AP_Name" name="SSID_AP_Name"><br>
-                <label for="SSID_AP_Pass">AP SSID Password:</label>
-                <input type="password" id="SSID_AP_Pass" name="SSID_AP_Pass"><br>
-                <button type="submit">Save WiFi Settings</button>
-            </form>
+        <div class="card collapsible" onclick="toggleCardContent(this)">
+            <h2 class="card-title">WiFi Settings</h2>
+            <div class="card-content">
+                <form id="wifiForm" onsubmit="handleSubmit(event)" onclick="event.stopPropagation()">
+                    <label for="SSID_Name">SSID/WiFi Name:</label>
+                    <input type="text" id="SSID_Name" name="SSID_Name" required><br>
+                    <label for="SSID_Pass">SSID/WiFi Password:</label>
+                    <input type="password" id="SSID_Pass" name="SSID_Pass"><br>
+                    <label for="ESP_MAC">ESP MAC Address:</label>
+                    <input type="text" id="ESP_MAC" name="ESP_MAC" readonly><br>
+                    <label for="SSID_AP_Name">AP SSID Name:</label>
+                    <input type="text" id="SSID_AP_Name" name="SSID_AP_Name"><br>
+                    <label for="SSID_AP_Pass">AP SSID Password:</label>
+                    <input type="password" id="SSID_AP_Pass" name="SSID_AP_Pass"><br>
+                    <button type="submit">Save WiFi Settings</button><br>
+                </form>
+            </div>
         </div>
     </div>
 
     <!-- MQTT Settings Card -->
     <div class="center-container">
-        <div class="card" style="width: 80%;;">
-            <h2>MQTT Settings</h2>
-            <form id="mqttForm" onsubmit="handleSubmit(event)">
-                <label for="MQTT_Broker">MQTT Broker:</label>
-                <input type="text" id="MQTT_Broker" name="MQTT_Broker" required><br>
-                <label for="MQTT_Port">MQTT Port:</label>
-                <input type="number" id="MQTT_Port" name="MQTT_Port" required><br>
-                <label for="MQTT_Send">MQTT Send Topic:</label>
-                <input type="text" id="MQTT_Send" name="MQTT_Send" required><br>
-                <label for="MQTT_Recv">MQTT Receive Topic:</label>
-                <input type="text" id="MQTT_Recv" name="MQTT_Recv" required><br>
-                <label for="MQTT_User">MQTT User:</label>
-                <input type="text" id="MQTT_User" name="MQTT_User"><br>
-                <label for="MQTT_Pass">MQTT Password:</label>
-                <input type="password" id="MQTT_Pass" name="MQTT_Pass"><br>
-                <button type="submit">Save MQTT Settings</button>
-            </form>
+        <div class="card collapsible" onclick="toggleCardContent(this)">
+            <h2 class="card-title">MQTT Settings</h2>
+            <div class="card-content">
+                <form id="mqttForm" onsubmit="handleSubmit(event)" onclick="event.stopPropagation()">
+                    <label for="MQTT_Broker">MQTT Broker:</label>
+                    <input type="text" id="MQTT_Broker" name="MQTT_Broker" required><br>
+                    <label for="MQTT_Port">MQTT Port:</label>
+                    <input type="number" id="MQTT_Port" name="MQTT_Port" required><br>
+                    <label for="MQTT_Send">MQTT Send Topic:</label>
+                    <input type="text" id="MQTT_Send" name="MQTT_Send" required><br>
+                    <label for="MQTT_Recv">MQTT Receive Topic:</label>
+                    <input type="text" id="MQTT_Recv" name="MQTT_Recv" required><br>
+                    <label for="MQTT_User">MQTT User:</label>
+                    <input type="text" id="MQTT_User" name="MQTT_User"><br>
+                    <label for="MQTT_Pass">MQTT Password:</label>
+                    <input type="password" id="MQTT_Pass" name="MQTT_Pass"><br>
+                    <button type="submit">Save MQTT Settings</button>
+                </form>
+            </div>
         </div>
     </div>
 
     <!-- Web Settings Card -->
     <div class="center-container">
-        <div class="card" style="width: 80%;;">
-            <h2>Web Settings</h2>
-            <form id="webForm" onsubmit="handleSubmit(event)">
-                <label for="Web_User">Web User:</label>
-                <input type="text" id="Web_User" name="Web_User" required><br>
-                <label for="Web_Pass">Web Password:</label>
-                <input type="password" id="Web_Pass" name="Web_Pass" required><br>
-                <label for="Web_name">Web Name:</label>
-                <input type="text" id="Web_name" name="Web_name"><br>
-                <label for="Web_Lock">Web Lock:</label>
-                <input type="checkbox" id="Web_Lock" name="Web_Lock"><br>
-                <button type="submit">Save Web Settings</button>
-            </form>
+        <div class="card collapsible" onclick="toggleCardContent(this)">
+            <h2 class="card-title">Web Settings</h2>
+            <div class="card-content">
+                <form id="webForm" onsubmit="handleSubmit(event)" onclick="event.stopPropagation()">
+                    <label for="Web_User">Web User:</label>
+                    <input type="text" id="Web_User" name="Web_User" required><br>
+                    <label for="Web_Pass">Web Password:</label>
+                    <input type="password" id="Web_Pass" name="Web_Pass" required><br>
+                    <label for="Web_name">Web Name:</label>
+                    <input type="text" id="Web_name" name="Web_name"><br>
+                    <label for="Web_Lock">Web Lock:</label>
+                    <input type="checkbox" id="Web_Lock" name="Web_Lock" class="large-checkbox"><br>
+                    <button type="submit">Save Web Settings</button>
+                </form>
+            </div>
         </div>
     </div>
 
-    <!-- LORA Settings Card -->
     <div class="center-container">
-        <div class="card" style="width: 80%;;">
-            <h2>LORA Settings</h2>
-            <form id="loraForm" onsubmit="handleSubmit(event)">
-                <label for="LORA_Key">LORA Key (0 to 0xFF):</label>
-                <input type="number" id="LORA_Key" name="LORA_Key" min="0" max="255" required><br>
-        
-                <label for="LORA_CRC">LORA CRC:</label>
-                <input type="checkbox" id="LORA_CRC" name="LORA_CRC"><br>
-        
-                <label for="LORA_RSSI">LORA RSSI:</label>
-                <input type="text" id="LORA_RSSI" name="LORA_RSSI" readonly><br>
-        
-                <label for="LORA_PacketHZErr">LORA Packet Hz Error:</label>
-                <input type="text" id="LORA_PacketHZErr" name="LORA_PacketHZErr" readonly><br>
-        
-                <label for="LORA_Spread">LORA Spread:</label>
-                <select id="LORA_Spread" name="LORA_Spread" required>
-                    <option value="6">6</option>
-                    <option value="7">7</option>
-                    <option value="8">8</option>
-                    <option value="9">9</option>
-                    <option value="10">10</option>
-                    <option value="11">11</option>
-                    <option value="12">12</option>
-                </select><br>
-        
-                <label for="LORA_Coding">LORA Coding:</label>
-                <select id="LORA_Coding" name="LORA_Coding" required>
-                    <option value="5">5</option>
-                    <option value="6">6</option>
-                    <option value="7">7</option>
-                    <option value="8">8</option>
-                </select><br>
-        
-                <label for="LORA_TxPwr">LORA Tx Power:</label>
-                <select id="LORA_TxPwr" name="LORA_TxPwr" required>
-                    <option value="2">2</option>
-                    <option value="5">5</option>
-                    <option value="7">7</option>
-                    <option value="10">10</option>
-                    <option value="13">13</option>
-                    <option value="17">17</option>
-                </select><br>
-        
-                <label for="LORA_Reg">LORA Region:</label>
-                <select id="LORA_Reg" name="LORA_Reg" required>
-                    <option value="433E6">433 MHz</option>
-                    <option value="868E6">868 MHz</option>
-                    <option value="915E6">915 MHz</option>
-                </select><br>
-        
-                <button type="submit">Save LORA Settings</button>
-            </form>
+        <div class="card collapsible" onclick="toggleCardContent(this)">
+            <h2 class="card-title">System Information</h2>
+            <div class="card-content" id="systeminfo">
+            </div>
         </div>
     </div>
 
     <!-- OTA Update via File Upload Card -->
     <div class="center-container">
-        <div class="card" style="width: 80%;;">
-            <h2>OTA Update via File Upload</h2>
-            <form id="otaFileForm">
-                <input type="file" id="file" name="file"><br>
-                <button type="button" onclick="document.getElementById('file').click()">Upload Firmware</button>
-            </form>
+        <div class="card collapsible" onclick="toggleCardContent(this)">
+            <h2 class="card-title">OTA Update via File Upload</h2>
+            <div class="card-content">
+                <form id="otaFileForm" onclick="event.stopPropagation()">
+                    <input type="file" id="file" name="file" accept=".bin"><br>
+                    <button type="button" onclick="document.getElementById('file').click()">Upload Firmware</button>
+                </form>
+            </div>
         </div>
     </div>
 
     <!-- OTA Update via URL Card -->
     <div class="center-container">
-        <div class="card" style="width: 80%;;">
-            <h2>OTA Update via URL</h2>
-            <form id="otaUrlForm">
-                <label for="firmwareUrl">Firmware URL:</label>
-                <input type="text" id="firmwareUrl" name="firmwareUrl" placeholder="https://example.com/firmware.bin"
-                    required>
-                <button type="submit">Start OTA Update</button>
-            </form>
-        </div>
-    </div>
-
-    <!-- Reboot Card -->
-    <div class="center-container">
-        <div class="card" style="width: 80%;;">
-            <h2>Reboot</h2>
-            <button style="background-color:orange;" onclick="rebootESP()">Reboot ESP</button><br><br>
+        <div class="card collapsible" onclick="toggleCardContent(this)">
+            <h2 class="card-title">OTA Update from Firmware List</h2>
+            <div class="card-content">
+                <form id="firmwareIndexForm" onclick="event.stopPropagation()">
+                    <label for="firmwareIndexUrl">Firmware Index JSON URL:</label>
+                    <input type="text" id="firmwareIndexUrl" name="firmwareIndexUrl"
+                        placeholder="https://example.com/firmware-list.json"><br>
+                    <button type="submit">Load Firmware Options</button>
+                </form>
+                <div id="firmwareListContainer" style="display:none; margin-top:20px;"></div>
+            </div>
         </div>
     </div>
 
     <footer>
         <button onclick="window.location.href='dashboard'">Back to Dashboard</button>
-        <a href="https://danielamani.com" style="color: white;">Code by: DanielAmani.com</a><br>
+        <a href="https://danielamani.com" style="color: white;">Code by: DanielAmani.com</a>
+        <button style="background-color:orange;" onclick="rebootESP()">Reboot ESP</button>
     </footer>
 </body>
 

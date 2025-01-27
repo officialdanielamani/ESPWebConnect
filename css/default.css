@@ -40,7 +40,6 @@
     --close-button-font-size: 1.25em;
 }
 
-
 body {
     font-family: Arial, sans-serif;
     background-color: var(--background-color);
@@ -352,6 +351,11 @@ input.large-checkbox {
     font-size: var(--card-font-size);
     font-weight: bold;
 }
+
+.card-info {
+    margin-bottom: 5px; /* Reduce or increase this value as necessary */
+}
+
 
 .card .icon {
     font-size: 3.5em;
