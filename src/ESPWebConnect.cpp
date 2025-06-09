@@ -1016,20 +1016,28 @@ String ESPWebConnect::generateDashboardHTML()
     html += "    </div>";
 
     // Theme Selection Dropdown
-    html += "    <div class='dropdown' style='margin-right: 20px;'>";
-    html += "      <button>Theme</button>";
-    html += "      <div class='dropdown-content'>";
-    html += "        <button value='default' onclick='changeTheme(event)'>Keqing</button>";
-    html += "        <button value='light' onclick='changeTheme(event)'>Light</button>";
-    html += "        <button value='dark' onclick='changeTheme(event)'>Dark</button>";
-    html += "      </div>";
-    html += "    </div>";
-    html += "    <div style='flex-grow: 0.9;'></div>"; // Spacer
-    html += "    <button onclick='saveDashboard()' style='margin-right: 10px;'>Save</button>";
-    html += "    <button onclick='clearDashboard()' style='margin-right: 10px;'>Clear</button>";
-    html += "    <button onclick=\"window.location.href='/espwebc'\" style='margin-right: 10px;'>Go to ESP Web Config</button>";
-    html += "  </div>";
-    html += "</div>";
+// Theme Selection Dropdown
+html += "    <div class='dropdown' style='margin-right: 20px;'>";
+html += "      <button>Theme</button>";
+html += "      <div class='dropdown-content'>";
+html += "        <button value='default' onclick='changeTheme(event)'>Keqing</button>";
+html += "        <button value='light' onclick='changeTheme(event)'>Light</button>";
+html += "        <button value='dark' onclick='changeTheme(event)'>Dark</button>";
+html += "      </div>";
+html += "    </div>";
+html += "    <div style='flex-grow: 0.9;'></div>"; // Spacer
+
+// Add Lock checkbox here
+html += "    <label style='display: flex; align-items: center; margin-right: 15px;'>";
+html += "      <input type='checkbox' id='lockDashboard' style='margin-right: 5px;'>";
+html += "      <span>Lock</span>";
+html += "    </label>";
+
+html += "    <button onclick='saveDashboard()' style='margin-right: 10px;'>Save</button>";
+html += "    <button onclick='clearDashboard()' style='margin-right: 10px;'>Clear</button>";
+html += "    <button onclick=\"window.location.href='/espwebc'\" style='margin-right: 10px;'>Go to ESP Web Config</button>";
+html += "  </div>";
+html += "</div>";
 
     // Dashboard container
     html += "<div id='dashboard'></div>";
