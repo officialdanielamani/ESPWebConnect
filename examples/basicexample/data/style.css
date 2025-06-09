@@ -1,4 +1,4 @@
-/* Version: 2.0.3 */
+/* Version: 2.0.4 - Mobile Enhanced (Compact) */
 :root {
   --background-color: #191030;
   --nav-background-color: #1f1f3f;
@@ -46,68 +46,49 @@
   --icon-size: 3em;
 }
 
-/* Light Theme (White, Blue) */
+/* Light Theme */
 [data-theme="light"] {
   --background-color: #ffffff;
   --nav-background-color: #f0f4ff;
   --dash-background-color: #ffffff;
   --card-background-color: #e6f0ff;
-
   --text-color: #333333;
   --header-text-color: #222222;
-
   --input-border-color: #cccccc;
   --input-background-color: #ffffff;
-
-  --button-text-color: #ffffff;
   --button-background-color: #3399ff;
   --button-hover-color: #287ec8;
   --dropdown-background-color: #ffffff;
-
   --toggle-on-background-color: #3399ff;
-  --toggle-on-color: #fff;
   --toggle-off-background-color: #cccccc;
-  --toggle-off-color: #fff;
-
   --notification-background-color: #f0f4ff;
   --notification-icon-color: #3399ff;
-  --close-button-color: #d85f5f;
-
   --widget-name-color: #333333;
   --widget-value-color: #000000;
   --widget-icon-color: #3399ff;
   --widget-desc-color: #3399ff;
   --widget-background-color: #ffffff;
-
 }
 
-/* Dark Theme (Black, Gray) */
+/* Dark Theme */
 [data-theme="dark"] {
   --background-color: #000000;
   --nav-background-color: #111111;
   --dash-background-color: #000000;
   --card-background-color: #222222;
-
   --text-color: #dddddd;
   --header-text-color: #ffffff;
-
   --input-border-color: #333333;
   --input-background-color: #111111;
-
-  --button-text-color: #ffffff;
   --button-background-color: #444444;
   --button-hover-color: #555555;
   --dropdown-background-color: #333333;
-
   --toggle-on-background-color: #fff;
   --toggle-on-color: #666666;
   --toggle-off-background-color: #fff;
   --toggle-off-color: #111111;
-
   --notification-background-color: #111111;
   --notification-icon-color: #dddddd;
-  --close-button-color: #d85f5f;
-
   --widget-name-color: #dddddd;
   --widget-value-color: #ffffff;
   --widget-icon-color: #dddddd;
@@ -115,6 +96,8 @@
   --widget-background-color: #222222;
 }
 
+/* Base Styles */
+* { box-sizing: border-box; }
 
 body {
   font-family: Arial, sans-serif;
@@ -124,30 +107,14 @@ body {
   padding: 0;
   text-align: center;
   font-size: var(--base-font-size);
+  -webkit-text-size-adjust: 100%; /* Prevent iOS zoom */
 }
 
-h1,
-h2,
-h3 {
-  color: var(--header-text-color);
-}
-
-h1 {
-  font-size: var(--h1-font-size);
-}
-
-h2 {
-  font-size: var(--h2-font-size);
-}
-
-h3 {
-  font-size: var(--h3-font-size);
-}
-
-p {
-  font-size: var(--p-font-size);
-  color: var(--text-color);
-}
+h1, h2, h3 { color: var(--header-text-color); }
+h1 { font-size: var(--h1-font-size); }
+h2 { font-size: var(--h2-font-size); }
+h3 { font-size: var(--h3-font-size); }
+p { font-size: var(--p-font-size); color: var(--text-color); }
 
 #navbar {
   width: 100%;
@@ -158,9 +125,7 @@ p {
   flex-direction: column;
 }
 
-#navbar h3 {
-  margin: 0;
-}
+#navbar h3 { margin: 0; }
 
 .dropdown {
   position: relative;
@@ -176,11 +141,11 @@ p {
   cursor: pointer;
   width: 100%;
   font-size: var(--dropdown-font-size);
+  min-height: 44px; /* Mobile touch target */
+  -webkit-tap-highlight-color: transparent;
 }
 
-.dropdown button:hover {
-  background-color: var(--button-hover-color);
-}
+.dropdown button:hover { background-color: var(--button-hover-color); }
 
 .dropdown-content {
   display: none;
@@ -191,10 +156,12 @@ p {
   z-index: 10;
   width: 100%;
   font-size: var(--dropdown-font-size);
+  max-height: 60vh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch; /* iOS momentum scroll */
 }
 
-.dropdown-content button,
-button {
+.dropdown-content button, button {
   padding: 15px 15px;
   background-color: var(--button-background-color);
   border: none;
@@ -202,6 +169,8 @@ button {
   cursor: pointer;
   border-radius: 4px;
   font-size: var(--button-font-size);
+  min-height: 44px; /* Mobile touch target */
+  -webkit-tap-highlight-color: transparent;
 }
 
 .dropdown-content button {
@@ -211,27 +180,13 @@ button {
   font-size: var(--dropdown-font-size);
 }
 
-.dropdown-content button:hover {
+.dropdown-content button:hover, button:hover {
   background-color: var(--button-hover-color);
 }
 
-.dropdown:hover .dropdown-content {
-  display: block;
-}
-
-
-
-button:hover {
-  background-color: var(--button-hover-color);
-}
-
-#footer {
-  width: 100%;
-  background-color: #333;
-  color: var(--button-text-color);
-  text-align: center;
-  padding: 10px 0;
-  margin-top: auto;
+/* Mobile dropdown behavior */
+@media (hover: hover) and (pointer: fine) {
+  .dropdown:hover .dropdown-content { display: block; }
 }
 
 #dashboard {
@@ -246,6 +201,7 @@ button:hover {
   background-size: 55px 55px;
   height: calc(100vh - 120px);
   width: 100%;
+  -webkit-overflow-scrolling: touch;
 }
 
 .widget {
@@ -260,26 +216,42 @@ button:hover {
   box-sizing: border-box;
   padding: 15px;
   position: relative;
+  user-select: none; /* Prevent text selection during drag */
+  touch-action: none; /* Better touch handling */
 }
 
-.widget.dragging,
-.widget.resizing {
+.widget.dragging {
   z-index: 1000;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
 }
 
-.widget:hover {
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
-}
+.widget:hover { box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2); }
 
-.sensor-value,
-.widget-form {
+/* Mobile drag handle */
+.drag-handle {
+  position: absolute;
+  top: 5px;
+  left: 5px;
+  width: 24px;
+  height: 24px;
+  background-color: rgba(0, 0, 0, 0.3);
+  border-radius: 4px;
   display: flex;
   align-items: center;
+  justify-content: center;
+  color: var(--text-color);
+  font-size: 12px;
+  cursor: grab;
+  z-index: 10;
+  opacity: 0.7;
 }
 
-.sensor-value .widget-unit .widget-form {
-  margin-left: 5px;
+.drag-handle:active { cursor: grabbing; }
+.widget:hover .drag-handle { opacity: 1; }
+
+.sensor-value, .widget-form {
+  display: flex;
+  align-items: center;
 }
 
 .card-info {
@@ -311,14 +283,25 @@ button:hover {
   color: var(--widget-value-color);
 }
 
-.widget input[type="text"],
-.widget input[type="number"],
-input {
+.widget input[type="text"], .widget input[type="number"], input {
   width: calc(70% - 20px);
   padding: 10px;
   margin: 10px 0;
   border: 1px solid #ccc;
   border-radius: 4px;
+  min-height: 44px; /* Mobile touch target */
+}
+
+/* Mobile input improvements */
+.input-mobile {
+  font-size: 16px !important; /* Prevents iOS zoom */
+  padding: 16px !important;
+}
+
+.button-mobile {
+  padding: 16px !important;
+  font-size: 16px !important;
+  min-height: 48px !important;
 }
 
 .remove-btn {
@@ -335,11 +318,12 @@ input {
   z-index: 3;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
   transition: background-color 0.3s ease;
+  min-width: 44px; /* Mobile touch target */
+  min-height: 44px;
+  -webkit-tap-highlight-color: transparent;
 }
 
-.remove-btn:hover {
-  background-color: darkred;
-}
+.remove-btn:hover { background-color: darkred; }
 
 .resizer {
   width: 20px;
@@ -351,50 +335,86 @@ input {
   cursor: se-resize;
   z-index: 5;
   border-radius: 3px;
+  min-width: 44px; /* Mobile touch target */
+  min-height: 44px;
 }
 
+.resizer-mobile {
+  width: 44px !important;
+  height: 44px !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--button-background-color);
+  color: var(--button-text-color);
+}
+
+/* Enhanced switch for mobile */
 label.switch {
-  position: relative;
-  display: inline-block;
-  width: 60px;
-  height: 34px;
+    position: relative;
+    display: inline-block;
+    width: 60px;
+    height: 34px;
+}
+
+.switch-mobile {
+    width: 80px !important;
+    height: 44px !important;
+}
+
+/* Hide the default checkbox completely */
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+    position: absolute;
+    visibility: hidden;
 }
 
 .switch_sw {
-  position: absolute;
-  cursor: pointer;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: var(--toggle-off-background-color);
-  transition: 0.4s;
-  border-radius: 34px;
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: var(--toggle-off-background-color);
+    transition: 0.4s;
+    border-radius: 34px;
 }
 
 .switch_sw:before {
-  position: absolute;
-  content: "";
-  height: 26px;
-  width: 26px;
-  left: 4px;
-  bottom: 4px;
-  background-color: var(--toggle-off-color);
-  transition: 0.4s;
-  border-radius: 50%;
+    position: absolute;
+    content: "";
+    height: 26px;
+    width: 26px;
+    left: 4px;
+    bottom: 4px;
+    background-color: var(--toggle-off-color);
+    transition: 0.4s;
+    border-radius: 50%;
 }
 
-input:checked+.switch_sw {
-  background-color: var(--toggle-on-background-color);
+.switch-mobile .switch_sw:before {
+    height: 36px !important;
+    width: 36px !important;
 }
 
-input:checked+.switch_sw:before {
-  transform: translateX(26px);
-  background-color: var(--toggle-on-color);
+input:checked + .switch_sw {
+    background-color: var(--toggle-on-background-color);
 }
 
-input:focus+.switch_sw {
-  box-shadow: 0 0 2px var(--button-background-color);
+input:checked + .switch_sw:before {
+    transform: translateX(26px);
+    background-color: var(--toggle-on-color);
+}
+
+.switch-mobile input:checked + .switch_sw:before {
+    transform: translateX(36px) !important;
+}
+
+input:focus + .switch_sw {
+    box-shadow: 0 0 2px var(--button-background-color);
 }
 
 .notification-banner {
@@ -408,7 +428,6 @@ input:focus+.switch_sw {
   padding: 10px 5%;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   z-index: 1000;
-  display: flex;
   align-items: center;
   justify-content: space-between;
   border-radius: 4px;
@@ -439,8 +458,8 @@ input:focus+.switch_sw {
 }
 
 .close-button {
-  width: 30px;
-  height: 30px;
+  width: 44px; /* Mobile touch target */
+  height: 44px;
   background-color: var(--close-button-color);
   border: none;
   color: #fff;
@@ -449,6 +468,7 @@ input:focus+.switch_sw {
   border-radius: 4px;
   text-align: center;
   padding: 0;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .card {
@@ -472,13 +492,9 @@ input:focus+.switch_sw {
   padding: 5px;
 }
 
-.center-container>.card {
-  width: 80%;
-}
+.center-container > .card { width: 80%; }
 
-.collapsible {
-  cursor: pointer;
-}
+.collapsible { cursor: pointer; }
 
 .card-content {
   display: none;
@@ -487,9 +503,7 @@ input:focus+.switch_sw {
   width: 100%;
 }
 
-.collapsible.expanded .card-content {
-  display: block;
-}
+.collapsible.expanded .card-content { display: block; }
 
 .collapsible.expanded .card-content form {
   width: 100%;
@@ -501,18 +515,70 @@ input:focus+.switch_sw {
   align-items: center;
 }
 
+.widget.locked {
+    opacity: 0.9;
+    cursor: default !important;
+}
+
+.widget.locked:hover {
+    box-shadow: none !important;
+    transform: none !important;
+}
+
+#lockDashboard {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+}
+
+/* Mobile optimizations */
 @media (max-width: 768px) {
   #dashboard {
-    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(40px, 1fr));
+    grid-auto-rows: 40px;
+    gap: 8px;
+    padding: 15px;
+    background-size: 45px 45px;
+  }
+
+  .dropdown {
+    width: 100%;
+    margin: 5px 0;
+  }
+
+  .dropdown-content {
+    max-width: none;
+    left: 0;
+    right: 0;
+  }
+
+  #navbar > div:last-child {
+    flex-direction: column;
+    gap: 10px;
   }
 
   .widget {
     font-size: 12px;
     border-width: 1px;
+    padding: 10px;
   }
 
   .remove-btn {
     font-size: 10px;
     padding: 3px;
   }
+
+  .notification-banner {
+    flex-direction: column;
+    text-align: center;
+    gap: 10px;
+  }
+
+  .notification-icon,
+  .notification-message,
+  .close-button-container {
+    width: 100%;
+  }
+  
+
 }
