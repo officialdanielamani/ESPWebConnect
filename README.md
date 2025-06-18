@@ -13,6 +13,14 @@ You can try use our installer at to test some example projects: ~~https://daniel
 ## Note
 This library is in **BETA** development and for internal usage of ProjectEDNA. Don't use in deployment or mission critical project as there are many changes ahead. This library are the one of key part of `Integration Of Iot Platform Environment For Web Server & Global Connectivity Based On Esp32`
 
+After discussion with ProjectEDNA members, it's suggest to spilt the system to smaller components:
+- Core (Wifi & System Check)
+- Dashboard
+- OTA Update
+- Form & Save Data
+
+On core system it will check if the ESPWebC component is available in the SPIFFS and need update or not. If don't have it will download the component needed, bypass requirement need to SPIFFS upload to ESP32 when compile the project.
+
 ## Features
 
 - Easy WiFi and MQTT configuration through a web interface (No more hardcoded WiFi).
